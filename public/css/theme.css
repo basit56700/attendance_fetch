@@ -218,8 +218,9 @@ html.light textarea::placeholder {
 html.light input:focus,
 html.light select:focus,
 html.light textarea:focus {
-  border-color: #c41017 !important;
+  border-color: #cb1e27 !important;
   background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(203, 30, 39, 0.12) !important;
   outline: none !important;
 }
 
@@ -314,6 +315,73 @@ html.light #jsonModal > div {
 .shadow-blue-600\/20,
 .shadow-blue-600\/30 {
   box-shadow: 0 8px 18px -3px rgba(196, 16, 23, 0.28), 0 4px 6px -4px rgba(196, 16, 23, 0.2) !important;
+}
+
+/* ========================================================
+   PRO DESIGNER LIGHT-MODE ACCENT & ACTION SYSTEM
+   Calibrated for light surfaces to prevent eye fatigue & "error state" confusion:
+   - Primary Buttons: Luminous Corporate Cardinal gradient with micro-border & depth
+   - Active Navigation: Soft Ruby surface (#fef2f2) with crisp cardinal indicator (#cb1e27)
+   - Typography: Rich Crimson (#b91c1c) for authoritative legibility
+   - Focus Rings: Soft ambient halo instead of harsh red error outlines
+   ======================================================== */
+
+/* 1. Primary Action Buttons in Light Mode */
+html.light .bg-red-500,
+html.light .bg-red-600,
+html.light .bg-blue-600 {
+  background: linear-gradient(180deg, #cb1e27 0%, #b3141b 100%) !important;
+  border: 1px solid #9e1017 !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 3px 10px rgba(179, 20, 27, 0.22) !important;
+}
+
+html.light .hover\:bg-red-500:hover,
+html.light .hover\:bg-red-700:hover,
+html.light .hover\:bg-blue-500:hover {
+  background: linear-gradient(180deg, #b8151d 0%, #9e1017 100%) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(179, 20, 27, 0.3) !important;
+}
+
+/* 2. Active Sidebar Navigation Pill in Light Mode */
+html.light .nav-active-pill {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(203, 30, 39, 0.2) !important;
+  box-shadow: inset 3.5px 0 0 #cb1e27, 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .nav-active-pill svg {
+  color: #cb1e27 !important;
+}
+
+/* 3. Text & Wordmark Accents in Light Mode */
+html.light .text-red-500,
+html.light .text-red-600,
+html.light .text-blue-500 {
+  color: #b91c1c !important;
+}
+
+html.light .text-red-400 {
+  color: #c5222b !important;
+}
+
+/* 4. Soft Badges & User Avatar in Light Mode */
+html.light .bg-red-600\/20 {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-color: #fca5a5 !important;
+}
+
+html.light .border-red-500\/30 {
+  border-color: #fecaca !important;
+}
+
+/* 5. Inputs & Form Focus in Light Mode */
+html.light input[type="checkbox"]:checked,
+html.light input[type="radio"]:checked {
+  accent-color: #cb1e27 !important;
 }
 
 /* Functional status colors (Success, Warning) preserved for clarity */
