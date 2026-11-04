@@ -42,7 +42,7 @@
         <img id="sidebar-brand-logo"
              src="{{ asset('images/gcs-logo.png') }}" 
              alt="Global Connect Synergy" 
-             class="h-10 w-auto max-w-[190px] object-contain brightness-0 invert opacity-95 group-hover:opacity-100 transition duration-200">
+             class="h-20 w-auto max-w-[190px] object-contain brightness-0 invert opacity-95 group-hover:opacity-100 transition duration-200">
       </a>
       <div class="mt-2.5 flex items-center justify-between px-1">
         <div class="text-xs font-bold text-white tracking-tight flex items-center space-x-1.5">

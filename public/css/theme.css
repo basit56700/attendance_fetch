@@ -2,8 +2,8 @@
  * Global Connect Synergy (GCS) Theme System
  * Primary Brand Palette:
  * - Corporate Midnight Navy: #10203d (Deep Navy / #09111e / #0f1d35)
- * - Corporate Vibrant Red:    #e6272f (Chevron / Accent / Action Red)
- * - Clean Light Contrast:     #ffffff / #f8fafc
+ * - Corporate Brand Red:     #c41017 (Refined Crimson Chevron / Accent / Action Red)
+ * - Clean Light Contrast:    #ffffff / #f8fafc
  */
 
 :root {
@@ -16,10 +16,10 @@
   --gcs-navy-border: #162a4a;
   --gcs-navy-border-hover: #223e6b;
   
-  --gcs-red: #e6272f;
-  --gcs-red-hover: #cf1f27;
-  --gcs-red-glow: rgba(230, 39, 47, 0.25);
-  --gcs-red-subtle: rgba(230, 39, 47, 0.12);
+  --gcs-red: #c41017;
+  --gcs-red-hover: #a80d13;
+  --gcs-red-glow: rgba(196, 16, 23, 0.25);
+  --gcs-red-subtle: rgba(196, 16, 23, 0.12);
 }
 
 :root:has(> head > meta[name="color-scheme"][content="dark"]),
@@ -218,7 +218,7 @@ html.light textarea::placeholder {
 html.light input:focus,
 html.light select:focus,
 html.light textarea:focus {
-  border-color: #e6272f !important;
+  border-color: #c41017 !important;
   background-color: #ffffff !important;
   outline: none !important;
 }
@@ -256,55 +256,64 @@ html.light #jsonModal > div {
    ======================================================== */
 
 /* Primary Brand Red Action Elements */
+.bg-red-500,
 .bg-red-600 {
-  background-color: #e6272f !important;
+  background-color: #c41017 !important;
   color: #ffffff !important;
+}
+
+.bg-red-600\/20 {
+  background-color: rgba(196, 16, 23, 0.2) !important;
+}
+
+.border-red-500\/30 {
+  border-color: rgba(196, 16, 23, 0.3) !important;
 }
 
 .hover\:bg-red-500:hover,
 .hover\:bg-red-700:hover {
-  background-color: #cf1f27 !important;
+  background-color: #a80d13 !important;
 }
 
 .text-red-500,
 .text-red-600 {
-  color: #e6272f !important;
+  color: #c41017 !important;
 }
 
 .text-red-400 {
-  color: #f87171 !important;
+  color: #e0454c !important;
 }
 
 .shadow-red-600\/20,
 .shadow-red-600\/25,
 .shadow-red-600\/30 {
-  box-shadow: 0 8px 18px -3px rgba(230, 39, 47, 0.28), 0 4px 6px -4px rgba(230, 39, 47, 0.2) !important;
+  box-shadow: 0 8px 18px -3px rgba(196, 16, 23, 0.28), 0 4px 6px -4px rgba(196, 16, 23, 0.2) !important;
 }
 
 /* Corporate Red Gradient for Active Nav Pill */
 .nav-active-pill {
-  background: linear-gradient(135deg, #e6272f 0%, #c91820 100%) !important;
+  background: linear-gradient(135deg, #c41017 0%, #9e0c12 100%) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(230, 39, 47, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(196, 16, 23, 0.3) !important;
 }
 
 /* Map remaining generic blue utilities to GCS brand red for seamless harmony */
 .bg-blue-600 {
-  background-color: #e6272f !important;
+  background-color: #c41017 !important;
   color: #ffffff !important;
 }
 
 .hover\:bg-blue-500:hover {
-  background-color: #cf1f27 !important;
+  background-color: #a80d13 !important;
 }
 
 .text-blue-500 {
-  color: #e6272f !important;
+  color: #c41017 !important;
 }
 
 .shadow-blue-600\/20,
 .shadow-blue-600\/30 {
-  box-shadow: 0 8px 18px -3px rgba(230, 39, 47, 0.28), 0 4px 6px -4px rgba(230, 39, 47, 0.2) !important;
+  box-shadow: 0 8px 18px -3px rgba(196, 16, 23, 0.28), 0 4px 6px -4px rgba(196, 16, 23, 0.2) !important;
 }
 
 /* Functional status colors (Success, Warning) preserved for clarity */
@@ -359,8 +368,13 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none !important;
-  border-color: #e6272f !important;
-  box-shadow: 0 0 0 1px #e6272f !important;
+  border-color: #c41017 !important;
+  box-shadow: 0 0 0 1px #c41017 !important;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  accent-color: #c41017 !important;
 }
 
 /* ========================================================

@@ -49,7 +49,7 @@
         <img id="login-brand-logo"
              src="{{ asset('images/gcs-logo.png') }}" 
              alt="Global Connect Synergy" 
-             class="h-14 sm:h-16 w-auto max-w-[240px] object-contain brightness-0 invert opacity-95 transition duration-200">
+             class="h-20 sm:h-20 w-auto max-w-[240px] object-contain brightness-0 invert opacity-95 transition duration-200">
       </div>
       <h1 class="text-2xl font-black tracking-tight text-white uppercase">Attendance <span class="text-red-500 font-black">ERP</span></h1>
       <p class="text-xs text-slate-400 mt-1">Global Connect Synergy Biometric & Attendance Management</p>
