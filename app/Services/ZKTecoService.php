@@ -8,29 +8,47 @@ use Exception;
 class ZKTecoService
 {
     const CMD_CONNECT = 1000;
+
     const CMD_EXIT = 1001;
+
     const CMD_ENABLEDEVICE = 1002;
+
     const CMD_DISABLEDEVICE = 1003;
+
     const CMD_VERSION = 1100;
+
     const CMD_DEVICE = 11;
+
     const CMD_GET_TIME = 201;
+
     const CMD_SET_TIME = 202;
+
     const CMD_ATTLOG_RRQ = 13;
+
     const CMD_CLEAR_ATTLOG = 15;
 
     const CMD_ACK_OK = 2000;
+
     const CMD_ACK_ERROR = 2001;
+
     const CMD_ACK_DATA = 2002;
+
     const CMD_PREPARE_DATA = 1500;
+
     const CMD_DATA = 1501;
+
     const CMD_ACK_UNAUTH = 2005;
 
     const USHRT_MAX = 65535;
 
     protected $socket = null;
+
     protected $sessionId = 0;
+
     protected $replyNumber = 65534;
+
     protected $protocol = 'udp';
+
     protected $isConnected = false;
 
     /**
@@ -56,14 +74,15 @@ class ZKTecoService
         ];
 
         // 1. IP Validation
-        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+        if (! filter_var($ip, FILTER_VALIDATE_IP)) {
             $diag['error_code'] = 'ERR_INVALID_IP';
             $diag['error_summary'] = "The IP address '{$ip}' is invalid.";
-            $diag['root_cause'] = "Syntactically invalid IPv4 address format.";
+            $diag['root_cause'] = 'Syntactically invalid IPv4 address format.';
             $diag['resolution_steps'] = [
-                "Verify the IP format (e.g. 192.168.1.201).",
-                "Check the device screen: Menu -> Comm. -> Ethernet -> IP Address."
+                'Verify the IP format (e.g. 192.168.1.201).',
+                'Check the device screen: Menu -> Comm. -> Ethernet -> IP Address.',
             ];
+
             return $diag;
         }
 
@@ -91,7 +110,8 @@ class ZKTecoService
                     $devTime = null;
                     try {
                         $devTime = $zk->getTime();
-                    } catch (Exception $te) {}
+                    } catch (Exception $te) {
+                    }
 
                     $zk->disconnect();
 
@@ -104,9 +124,11 @@ class ZKTecoService
                         $diag['time_drift_seconds'] = abs(strtotime($devTime) - time());
                     }
                     $diag['error_summary'] = 'Device is online, healthy, and communicating normally via UDP.';
+
                     return $diag;
                 }
-            } catch (Exception $ze) {}
+            } catch (Exception $ze) {
+            }
         }
 
         // 4. Try TCP fallback or explicit TCP
@@ -129,12 +151,14 @@ class ZKTecoService
 
                 $diag['success'] = true;
                 $diag['error_summary'] = 'Device is online, healthy, and communicating normally.';
+
                 return $diag;
             } else {
                 return $this->diagnoseFailure($ip, $port, $errNo, $errStr, $startTime, $isSocketReachable);
             }
         } catch (Exception $e) {
             $this->disconnect();
+
             return $this->diagnoseFailure($ip, $port, $errNo, $e->getMessage(), $startTime, $isSocketReachable);
         }
     }
@@ -162,7 +186,7 @@ class ZKTecoService
             }
         }
 
-        if (!$isSocketReachable || $errNo === 10060 || stripos($msg, 'timed out') !== false || stripos($msg, 'not properly respond') !== false || stripos($msg, 'Resource temporarily unavailable') !== false) {
+        if (! $isSocketReachable || $errNo === 10060 || stripos($msg, 'timed out') !== false || stripos($msg, 'not properly respond') !== false || stripos($msg, 'Resource temporarily unavailable') !== false) {
             $diag['error_code'] = 'ERR_HOST_UNREACHABLE';
             $diag['error_summary'] = "Cannot reach {$ip}:{$port}. No response from host across your local network.";
             if ($isDifferentSubnet) {
@@ -170,17 +194,18 @@ class ZKTecoService
                 $diag['resolution_steps'] = [
                     "1. Testing on Workstation vs Production: If you are running on your local laptop, you can still click 'Save Biometric Machine' below! When deployed on your production server (where your original /var/www/html/ script ran), the server will connect directly.",
                     "2. Network Routing: If you want this laptop to reach {$ip}, configure your router to allow routing between subnet {$localParts[0]}.{$localParts[1]}.{$localParts[2]}.x and {$ipParts[0]}.{$ipParts[1]}.{$ipParts[2]}.x.",
-                    "3. Device Status: Ensure the machine is powered ON and Ethernet cable is connected with active link lights."
+                    '3. Device Status: Ensure the machine is powered ON and Ethernet cable is connected with active link lights.',
                 ];
             } else {
                 $diag['root_cause'] = "The biometric machine did not respond. Check power, cable connection, or firewall rules on port {$port}.";
                 $diag['resolution_steps'] = [
-                    "1. Check that the biometric machine is powered ON.",
-                    "2. Verify the Ethernet cable is connected and link LEDs are blinking.",
+                    '1. Check that the biometric machine is powered ON.',
+                    '2. Verify the Ethernet cable is connected and link LEDs are blinking.',
                     "3. In machine Menu -> Comm. -> Ethernet, confirm IP is {$ip} and Gateway is correct.",
-                    "4. Try 'ping {$ip}' in terminal to verify basic network connectivity."
+                    "4. Try 'ping {$ip}' in terminal to verify basic network connectivity.",
                 ];
             }
+
             return $diag;
         }
 
@@ -191,18 +216,19 @@ class ZKTecoService
             $diag['resolution_steps'] = [
                 "1. Confirm no other device is conflicting on {$ip}.",
                 "2. Verify Machine Port: In ZKTeco Menu -> Comm. -> PC Connect, verify Port is {$port} (4370).",
-                "3. Protocol: Switch to Auto or UDP Only."
+                '3. Protocol: Switch to Auto or UDP Only.',
             ];
+
             return $diag;
         }
 
         $diag['error_code'] = 'ERR_HANDSHAKE_FAILED';
-        $diag['error_summary'] = "Could not complete ZKTeco binary protocol handshake with {$ip}:{$port}. " . ($msg ?: 'No response');
-        $diag['root_cause'] = "The device is reachable at the network layer, but failed the proprietary ZKTeco protocol initialization.";
+        $diag['error_summary'] = "Could not complete ZKTeco binary protocol handshake with {$ip}:{$port}. ".($msg ?: 'No response');
+        $diag['root_cause'] = 'The device is reachable at the network layer, but failed the proprietary ZKTeco protocol initialization.';
         $diag['resolution_steps'] = [
             "1. Switch Protocol: In machine settings, change protocol to 'Auto (UDP & TCP)' or 'UDP Only'. Your original PHP code uses UDP.",
-            "2. Power cycle the biometric device (turn OFF, wait 5 seconds, turn ON).",
-            "3. Check whether another software (such as ZKAccess or ZKBioTime) is holding an exclusive socket lock on this machine."
+            '2. Power cycle the biometric device (turn OFF, wait 5 seconds, turn ON).',
+            '3. Check whether another software (such as ZKAccess or ZKBioTime) is holding an exclusive socket lock on this machine.',
         ];
 
         return $diag;
@@ -219,7 +245,7 @@ class ZKTecoService
             $protoType = ($proto === 'tcp') ? SOL_TCP : SOL_UDP;
 
             $this->socket = @socket_create(AF_INET, $sockType, $protoType);
-            if (!$this->socket) {
+            if (! $this->socket) {
                 continue;
             }
 
@@ -229,9 +255,10 @@ class ZKTecoService
             socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, ['sec' => $sec, 'usec' => $usec]);
 
             if ($proto === 'tcp') {
-                if (!@socket_connect($this->socket, $ip, $port)) {
+                if (! @socket_connect($this->socket, $ip, $port)) {
                     @socket_close($this->socket);
                     $this->socket = null;
+
                     continue;
                 }
             }
@@ -246,6 +273,7 @@ class ZKTecoService
             if ($response && $response['command'] === self::CMD_ACK_OK) {
                 $this->sessionId = $response['session_id'];
                 $this->isConnected = true;
+
                 return true;
             }
 
@@ -254,6 +282,7 @@ class ZKTecoService
         }
 
         $this->isConnected = false;
+
         return false;
     }
 
@@ -262,7 +291,8 @@ class ZKTecoService
         if ($this->isConnected && $this->socket) {
             try {
                 $this->sendPacket('', 0, self::CMD_EXIT);
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+            }
         }
         if ($this->socket) {
             @socket_close($this->socket);
@@ -311,15 +341,17 @@ class ZKTecoService
                                 'work_code' => '0',
                             ];
                         }
+
                         return $records;
                     }
                 }
-            } catch (Exception $ze) {}
+            } catch (Exception $ze) {
+            }
         }
 
         // 2. Fallback to native socket protocol
-        if (!$this->isConnected) {
-            if (!$this->connect($ip, $port, $protocol, $commKey)) {
+        if (! $this->isConnected) {
+            if (! $this->connect($ip, $port, $protocol, $commKey)) {
                 throw new Exception("Unable to connect to biometric machine at {$ip}:{$port}");
             }
         }
@@ -343,7 +375,9 @@ class ZKTecoService
 
                 while (strlen($dataBuffer) < $totalBytes) {
                     $pkt = $this->receivePacket();
-                    if (!$pkt) break;
+                    if (! $pkt) {
+                        break;
+                    }
                     if ($pkt['command'] === self::CMD_DATA) {
                         $dataBuffer .= $pkt['payload'];
                     } elseif ($pkt['command'] === self::CMD_ACK_OK) {
@@ -377,13 +411,15 @@ class ZKTecoService
                 if ($zk->connect()) {
                     $ok = $zk->clearAttendance();
                     $zk->disconnect();
+
                     return (bool) $ok;
                 }
-            } catch (Exception $ze) {}
+            } catch (Exception $ze) {
+            }
         }
 
-        if (!$this->isConnected) {
-            if (!$this->connect($ip, $port, $protocol, $commKey)) {
+        if (! $this->isConnected) {
+            if (! $this->connect($ip, $port, $protocol, $commKey)) {
                 return false;
             }
         }
@@ -398,7 +434,7 @@ class ZKTecoService
             $this->sendPacket($ip, $port, self::CMD_ENABLEDEVICE);
             $this->receivePacket();
 
-            return ($resp && $resp['command'] === self::CMD_ACK_OK);
+            return $resp && $resp['command'] === self::CMD_ACK_OK;
         } finally {
             $this->disconnect();
         }
@@ -406,39 +442,51 @@ class ZKTecoService
 
     public function getFirmwareVersion(): string
     {
-        if (!$this->isConnected) return 'Unknown';
+        if (! $this->isConnected) {
+            return 'Unknown';
+        }
         try {
             $this->sendPacket('', 0, self::CMD_VERSION);
             $resp = $this->receivePacket();
             if ($resp && $resp['command'] === self::CMD_ACK_OK) {
                 return trim($resp['payload']);
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
+
         return 'Unknown';
     }
 
     public function getDeviceTime(): ?string
     {
-        if (!$this->isConnected) return null;
+        if (! $this->isConnected) {
+            return null;
+        }
         try {
             $this->sendPacket('', 0, self::CMD_GET_TIME);
             $resp = $this->receivePacket();
             if ($resp && $resp['command'] === self::CMD_ACK_OK && strlen($resp['payload']) >= 4) {
                 $unpacked = unpack('Vt', substr($resp['payload'], 0, 4));
+
                 return $this->decodeZKTime($unpacked['t']);
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
+
         return null;
     }
 
     public function syncDeviceTime(): bool
     {
-        if (!$this->isConnected) return false;
+        if (! $this->isConnected) {
+            return false;
+        }
         try {
             $packed = $this->encodeZKTime(time());
             $this->sendPacket('', 0, self::CMD_SET_TIME, pack('V', $packed));
             $resp = $this->receivePacket();
-            return ($resp && $resp['command'] === self::CMD_ACK_OK);
+
+            return $resp && $resp['command'] === self::CMD_ACK_OK;
         } catch (Exception $e) {
             return false;
         }
@@ -450,19 +498,22 @@ class ZKTecoService
 
     protected function createHeader(int $command, string $data = ''): string
     {
-        $buf = pack('vvvv', $command, 0, $this->sessionId, $this->replyNumber) . $data;
+        $buf = pack('vvvv', $command, 0, $this->sessionId, $this->replyNumber).$data;
         $checksum = $this->calculateChecksum($buf);
-        return pack('vvvv', $command, $checksum, $this->sessionId, $this->replyNumber) . $data;
+
+        return pack('vvvv', $command, $checksum, $this->sessionId, $this->replyNumber).$data;
     }
 
     protected function sendPacket(string $ip, int $port, int $command, string $data = ''): void
     {
-        if (!$this->socket) return;
+        if (! $this->socket) {
+            return;
+        }
         $packet = $this->createHeader($command, $data);
 
         if ($this->protocol === 'tcp') {
-            $prefix = pack('Va*', 0x5050827D, pack('v', strlen($packet)) . "\x00\x00");
-            @socket_write($this->socket, $prefix . $packet);
+            $prefix = pack('VV', 0x5050827D, strlen($packet));
+            @socket_write($this->socket, $prefix.$packet);
         } else {
             @socket_sendto($this->socket, $packet, strlen($packet), 0, $ip, $port);
         }
@@ -470,18 +521,24 @@ class ZKTecoService
 
     protected function receivePacket(): ?array
     {
-        if (!$this->socket) return null;
+        if (! $this->socket) {
+            return null;
+        }
         $raw = '';
 
         if ($this->protocol === 'tcp') {
             $prefix = @socket_read($this->socket, 8);
-            if (!$prefix || strlen($prefix) < 8) return null;
-            $lenData = unpack('vlen', substr($prefix, 4, 2));
+            if (! $prefix || strlen($prefix) < 8) {
+                return null;
+            }
+            $lenData = unpack('Vlen', substr($prefix, 4, 4));
             $targetLen = $lenData['len'];
 
             while (strlen($raw) < $targetLen) {
                 $chunk = @socket_read($this->socket, min($targetLen - strlen($raw), 4096));
-                if (!$chunk) break;
+                if (! $chunk) {
+                    break;
+                }
                 $raw .= $chunk;
             }
         } else {
@@ -490,7 +547,9 @@ class ZKTecoService
             @socket_recvfrom($this->socket, $raw, 65535, 0, $from, $port);
         }
 
-        if (strlen($raw) < 8) return null;
+        if (strlen($raw) < 8) {
+            return null;
+        }
 
         $header = unpack('vcommand/vchecksum/vsession_id/vreply_id', substr($raw, 0, 8));
         $payload = substr($raw, 8);
@@ -517,6 +576,7 @@ class ZKTecoService
         while ($chk > 0xFFFF) {
             $chk = ($chk & 0xFFFF) + ($chk >> 16);
         }
+
         return (~$chk) & 0xFFFF;
     }
 
@@ -553,7 +613,9 @@ class ZKTecoService
     protected function parseAttendanceData(string $data): array
     {
         $records = [];
-        if (empty($data)) return $records;
+        if (empty($data)) {
+            return $records;
+        }
 
         // Check for tab-separated text format
         if (strpos(substr($data, 0, 100), "\t") !== false) {
@@ -568,6 +630,7 @@ class ZKTecoService
                     $records[] = $this->formatRecord($userId, $time, $state, $verify);
                 }
             }
+
             return $records;
         }
 
@@ -576,13 +639,16 @@ class ZKTecoService
             for ($i = 0; $i < strlen($data); $i += 40) {
                 $chunk = substr($data, $i, 40);
                 $userId = trim(strtok(substr($chunk, 0, 24), "\x00"));
-                if (empty($userId)) continue;
+                if (empty($userId)) {
+                    continue;
+                }
                 $verify = ord($chunk[24]);
                 $state = ord($chunk[25]);
                 $t = unpack('Vt', substr($chunk, 26, 4))['t'];
                 $time = $this->decodeZKTime($t);
                 $records[] = $this->formatRecord($userId, $time, $state, $verify);
             }
+
             return $records;
         }
 
@@ -597,6 +663,7 @@ class ZKTecoService
                 $time = $this->decodeZKTime($t);
                 $records[] = $this->formatRecord($userId, $time, $state, $verify);
             }
+
             return $records;
         }
 

@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class TestZkMachines extends Command
 {
     protected $signature = 'zk:test {ip? : Optional machine IP to test}';
+
     protected $description = 'Safely tests network connectivity, handshake, and fetches attendance punches without deleting any data';
 
     public function handle(): int
@@ -41,11 +42,11 @@ class TestZkMachines extends Command
             }
         }
 
-        $this->info("===================================================================");
-        $this->info("   ZKTeco Biometric Machine Safe Diagnostic Tester");
-        $this->info("   SAFE MODE: Never clears attendance memory on physical machines");
-        $this->info("===================================================================");
-        $this->line("Testing " . $machines->count() . " machine(s)...\n");
+        $this->info('===================================================================');
+        $this->info('   ZKTeco Biometric Machine Safe Diagnostic Tester');
+        $this->info('   SAFE MODE: Never clears attendance memory on physical machines');
+        $this->info('===================================================================');
+        $this->line('Testing '.$machines->count()." machine(s)...\n");
 
         $success = 0;
         $failed = 0;
@@ -55,12 +56,12 @@ class TestZkMachines extends Command
             $port = (int) $m->port;
             $name = $m->name;
 
-            $this->line("-------------------------------------------------------------------");
+            $this->line('-------------------------------------------------------------------');
             $this->comment(">> [Machine #{$m->id}] {$name} ({$ip}:{$port})");
-            $this->line("-------------------------------------------------------------------");
+            $this->line('-------------------------------------------------------------------');
 
             // 1. TCP Port Probe (5s)
-            $this->write(" [1/3] Probing TCP port 4370 (5s timeout)... ");
+            $this->write(' [1/3] Probing TCP port 4370 (5s timeout)... ');
             $start = microtime(true);
             $errNo = 0;
             $errStr = '';
@@ -73,37 +74,41 @@ class TestZkMachines extends Command
             } else {
                 $this->error("UNREACHABLE ({$errStr})");
                 $failed++;
+
                 continue;
             }
 
             // 2. ZKLibrary UDP Connect
-            $this->write(" [2/3] Connecting via ZK UDP protocol... ");
+            $this->write(' [2/3] Connecting via ZK UDP protocol... ');
             try {
                 $zk = new ZKLibrary($ip, $port);
                 $zk->setTimeout(6, 0);
                 if ($zk->connect()) {
-                    $this->info("CONNECTED!");
+                    $this->info('CONNECTED!');
                     $version = $zk->getVersion();
                     if ($version) {
-                        $this->line("       • Firmware: " . trim($version));
+                        $this->line('       • Firmware: '.trim($version));
                     }
                     $devTime = $zk->getTime();
                     if ($devTime) {
                         $this->line("       • Device RTC Time: {$devTime}");
                     }
                 } else {
-                    $this->error("HANDSHAKE FAILED");
+                    $err = property_exists($zk, 'last_error') ? $zk->last_error : 'No response from device';
+                    $this->error("HANDSHAKE FAILED ({$err})");
                     $failed++;
+
                     continue;
                 }
             } catch (\Throwable $e) {
-                $this->error("EXCEPTION: " . $e->getMessage());
+                $this->error('EXCEPTION: '.$e->getMessage());
                 $failed++;
+
                 continue;
             }
 
             // 3. Fetch Punches Safely
-            $this->write(" [3/3] Fetching punches (NO deletion)... ");
+            $this->write(' [3/3] Fetching punches (NO deletion)... ');
             try {
                 $attendance = $zk->getAttendance();
                 if (is_array($attendance)) {
@@ -128,11 +133,11 @@ class TestZkMachines extends Command
                     }
                     $success++;
                 } else {
-                    $this->warn("Unexpected data format returned.");
+                    $this->warn('Unexpected data format returned.');
                     $failed++;
                 }
             } catch (\Throwable $e) {
-                $this->error("Error reading punches: " . $e->getMessage());
+                $this->error('Error reading punches: '.$e->getMessage());
                 $failed++;
             } finally {
                 $zk->disconnect();
@@ -140,9 +145,9 @@ class TestZkMachines extends Command
             }
         }
 
-        $this->info("===================================================================");
+        $this->info('===================================================================');
         $this->info("Summary: {$success} Passed, {$failed} Failed. Data safety guaranteed.");
-        $this->info("===================================================================");
+        $this->info('===================================================================');
 
         return $failed > 0 ? 1 : 0;
     }
