@@ -22,19 +22,22 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Seed Default Sample Biometric Machine
-        DB::table('attendance_machines')->updateOrInsert(
-            ['ip_address' => '192.168.1.201', 'port' => 4370],
-            [
-                'name' => 'Main Office Gate',
-                'protocol' => 'auto',
-                'comm_key' => 0,
-                'location' => 'Front Entrance',
-                'status' => 'active',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        );
+        // 2. Seed All Production Biometric Machines
+        $machines = [
+            ['ip_address' => '172.16.50.35', 'port' => 4370, 'name' => 'Noc and Support Machine', 'location' => '44 P', 'protocol' => 'auto', 'comm_key' => 0, 'status' => 'active'],
+            ['ip_address' => '172.16.50.36', 'port' => 4370, 'name' => 'Fiber Machine', 'location' => 'Fiber Dept', 'protocol' => 'auto', 'comm_key' => 0, 'status' => 'active'],
+            ['ip_address' => '172.16.50.37', 'port' => 4370, 'name' => '43-Q', 'location' => 'Office 43-Q', 'protocol' => 'auto', 'comm_key' => 0, 'status' => 'active'],
+            ['ip_address' => '172.16.50.38', 'port' => 4370, 'name' => 'Fortune Office 601', 'location' => 'Fortune Centre 601', 'protocol' => 'auto', 'comm_key' => 0, 'status' => 'active'],
+            ['ip_address' => '172.16.50.39', 'port' => 4370, 'name' => 'DHA Innovista', 'location' => 'DHA Innovista', 'protocol' => 'auto', 'comm_key' => 0, 'status' => 'active'],
+            ['ip_address' => '172.16.50.34', 'port' => 4370, 'name' => 'Korangi Warehouse', 'location' => 'Korangi Warehouse', 'protocol' => 'auto', 'comm_key' => 0, 'status' => 'active'],
+        ];
+
+        foreach ($machines as $m) {
+            DB::table('attendance_machines')->updateOrInsert(
+                ['ip_address' => $m['ip_address'], 'port' => $m['port']],
+                array_merge($m, ['created_at' => now(), 'updated_at' => now()])
+            );
+        }
 
         // 3. Seed Default System Settings
         $settings = [

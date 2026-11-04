@@ -15,7 +15,7 @@
     <div class="flex items-center space-x-2.5">
       <form action="{{ route('machines.fetch-all') }}" method="POST">
         @csrf
-        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs px-3.5 py-2 rounded-xl transition shadow-sm flex items-center space-x-1.5">
+        <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-red-600/20 flex items-center space-x-1.5 cursor-pointer">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           <span>Fetch All</span>
         </button>
@@ -49,7 +49,7 @@
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Protocol:</span>
-            <span class="text-blue-400 uppercase font-bold">{{ $machine->protocol }}</span>
+            <span class="text-red-400 uppercase font-bold">{{ $machine->protocol }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Comm Key:</span>
@@ -77,14 +77,14 @@
 
         <!-- Action Buttons -->
         <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
-          <button onclick="testMachineDiagnostic('{{ $machine->ip_address }}', {{ $machine->port }}, '{{ $machine->protocol }}', {{ $machine->comm_key }}, {{ $machine->id }})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2 rounded-xl transition font-medium flex items-center justify-center space-x-1">
-            <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          <button onclick="testMachineDiagnostic('{{ $machine->ip_address }}', {{ $machine->port }}, '{{ $machine->protocol }}', {{ $machine->comm_key }}, {{ $machine->id }})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2 rounded-xl transition font-medium flex items-center justify-center space-x-1 cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             <span>Diagnostics</span>
           </button>
 
           <form action="{{ route('machines.fetch', $machine) }}" method="POST">
             @csrf
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2 rounded-xl transition font-medium flex items-center justify-center space-x-1 shadow-md shadow-blue-600/20">
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white text-xs py-2 rounded-xl transition font-medium flex items-center justify-center space-x-1 shadow-md shadow-red-600/20 cursor-pointer">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
               <span>Fetch Logs</span>
             </button>
@@ -123,7 +123,7 @@
         </div>
         <div class="text-sm font-semibold text-white">No biometric machines registered</div>
         <div class="text-xs text-slate-500 mt-1">Connect your ZKTeco device via Ethernet cable or LAN and add it here.</div>
-        <a href="{{ route('machines.create') }}" class="inline-flex items-center space-x-1.5 mt-4 bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition">
+        <a href="{{ route('machines.create') }}" class="inline-flex items-center space-x-1.5 mt-4 bg-red-600 hover:bg-red-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-red-600/20">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
           <span>Add & Diagnose First Machine</span>
         </a>
@@ -196,7 +196,7 @@ function testMachineDiagnostic(ip, port, protocol, commKey, machineId) {
         </div>
 
         <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl font-mono text-xs space-y-1.5 text-slate-300">
-          <div class="flex justify-between"><span class="text-slate-500">Protocol:</span><span class="text-blue-400 font-bold">${data.protocol}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Protocol:</span><span class="text-red-400 font-bold">${data.protocol}</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Firmware:</span><span>${data.firmware || 'Unknown'}</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Device Clock:</span><span>${data.device_time || 'Unknown'}</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Clock Drift:</span><span class="${Math.abs(data.time_drift_seconds) > 60 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${data.time_drift_seconds ? data.time_drift_seconds + ' seconds' : 'N/A'}</span></div>
@@ -221,7 +221,7 @@ function testMachineDiagnostic(ip, port, protocol, commKey, machineId) {
           </div>
 
           <div>
-            <div class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Step-by-Step Resolution Guide</div>
+            <div class="text-[10px] uppercase font-bold text-red-400 tracking-wider">Step-by-Step Resolution Guide</div>
             <ul class="list-disc list-inside space-y-1 text-slate-300 mt-1.5 text-[11px] leading-relaxed">
               ${resolutionHtml}
             </ul>

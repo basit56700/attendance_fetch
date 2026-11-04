@@ -7,15 +7,18 @@
 <div class="space-y-6">
 
   <!-- Hero Welcome Banner -->
-  <div class="bg-gradient-to-r from-blue-950/60 via-slate-900 to-indigo-950/60 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+  <div class="bg-gradient-to-r from-[#10203d]/70 via-slate-900 to-[#10203d]/40 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
     <div>
-      <h2 class="text-xl font-extrabold text-white">GCS Attendance ERP</h2>
-      <p class="text-xs text-slate-400 mt-1">Multi-device management, real-time connectivity diagnostics, duplicate suppression, and JSON extraction.</p>
+      <h2 class="text-xl font-extrabold text-white flex items-center space-x-2">
+        <span>GCS Attendance ERP</span>
+        <span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30 font-mono font-medium">Enterprise</span>
+      </h2>
+      <p class="text-xs text-slate-400 mt-1">Global Connect Synergy multi-device biometric management, real-time diagnostics, and JSON sync.</p>
     </div>
     <div class="flex flex-wrap items-center gap-2.5">
       <form action="{{ route('machines.fetch-all') }}" method="POST">
         @csrf
-        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center space-x-2">
+        <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-red-600/30 flex items-center space-x-2 cursor-pointer">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           <span>Fetch All Machines</span>
         </button>
@@ -38,7 +41,7 @@
     <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-sm">
       <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
         <span>Punches Today</span>
-        <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+        <div class="w-7 h-7 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
       </div>
@@ -87,7 +90,7 @@
         <span>Connected Biometric Machines</span>
         <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">{{ $machines->count() }}</span>
       </h3>
-      <a href="{{ route('machines.index') }}" class="text-xs text-blue-400 hover:text-blue-300 font-medium">Manage All &rarr;</a>
+      <a href="{{ route('machines.index') }}" class="text-xs text-red-400 hover:text-red-300 font-medium">Manage All &rarr;</a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -103,7 +106,7 @@
             </span>
             <form action="{{ route('machines.fetch', $m) }}" method="POST">
               @csrf
-              <button type="submit" class="p-1 bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white rounded-lg transition" title="Fetch Logs Now">
+              <button type="submit" class="p-1 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white rounded-lg transition" title="Fetch Logs Now">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
               </button>
             </form>
@@ -122,7 +125,7 @@
     <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-bold text-white">Recent Attendance Logs</h3>
-        <a href="{{ route('attendance.index') }}" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View Full Table &rarr;</a>
+        <a href="{{ route('attendance.index') }}" class="text-xs text-red-400 hover:text-red-300 font-medium">View Full Table &rarr;</a>
       </div>
 
       <div class="overflow-x-auto">
@@ -168,7 +171,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-bold text-white">System Audit Trail</h3>
-        <a href="{{ route('audit-logs.index') }}" class="text-xs text-blue-400 hover:text-blue-300 font-medium">All Logs &rarr;</a>
+        <a href="{{ route('audit-logs.index') }}" class="text-xs text-red-400 hover:text-red-300 font-medium">All Logs &rarr;</a>
       </div>
 
       <div class="space-y-3">
@@ -179,7 +182,7 @@
               <span class="text-[10px] text-slate-500 font-mono">{{ $audit->created_at->diffForHumans() }}</span>
             </div>
             <div class="flex items-center space-x-1.5 mt-1">
-              <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase {{ $audit->status === 'success' ? 'bg-blue-500/10 text-blue-400' : 'bg-red-500/10 text-red-400' }}">
+              <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase {{ $audit->status === 'success' ? 'bg-red-500/10 text-red-400' : 'bg-red-500/10 text-red-400' }}">
                 {{ $audit->action }}
               </span>
               <span class="text-slate-400 truncate">{{ $audit->details }}</span>

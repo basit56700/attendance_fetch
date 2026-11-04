@@ -45,7 +45,7 @@
 
       <div class="flex items-center justify-between pt-4 mt-3 border-t border-slate-800 gap-3">
         <div class="flex items-center space-x-2">
-          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
+          <button type="submit" class="bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-sm cursor-pointer">
             Filter Logs
           </button>
           <a href="{{ route('audit-logs.index') }}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3.5 py-2 rounded-xl transition">
@@ -82,7 +82,7 @@
               <td class="py-3 px-4 text-slate-400">{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
               <td class="py-3 px-4 font-bold text-white font-sans">{{ $log->username }}</td>
               <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold uppercase text-[10px] bg-slate-800 text-blue-400 border border-slate-700">
+                <span class="px-2 py-0.5 rounded font-bold uppercase text-[10px] bg-slate-800 text-red-400 border border-slate-700">
                   {{ $log->action }}
                 </span>
               </td>
@@ -94,7 +94,7 @@
                     'success' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                     'failed' => 'bg-red-500/10 text-red-400 border-red-500/20',
                     'warning' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                    default => 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                    default => 'bg-slate-800 text-slate-300 border-slate-700',
                   };
                 @endphp
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase {{ $stCls }}">{{ $log->status }}</span>

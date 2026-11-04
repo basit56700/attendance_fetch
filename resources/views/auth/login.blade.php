@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>Sign In - GCS Attendance ERP</title>
+  <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
   <!-- Early FOUC Prevention Script -->
   <script>
@@ -43,13 +44,11 @@
   </div>
   <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative">
     <div class="text-center mb-8">
-      <div class="w-16 h-16 bg-blue-600/20 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/30 shadow-lg shadow-blue-600/20">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 004 11m0 0v.5"></path>
-        </svg>
+      <div class="inline-flex items-center justify-center bg-white rounded-3xl px-7 py-3.5 shadow-md border border-slate-200/90 mb-4 mx-auto transition hover:shadow-lg">
+        <img src="{{ asset('images/gcs-logo.png') }}" alt="Global Connect Synergy" class="h-12 w-auto object-contain">
       </div>
-      <h2 class="text-2xl font-extrabold text-white tracking-tight">ZK Attendance <span class="text-blue-500">ERP</span></h2>
-      <p class="text-xs text-slate-400 mt-1">Enterprise Biometric Device & Attendance System</p>
+      <h2 class="text-2xl font-extrabold text-white tracking-tight">Attendance <span class="text-red-500 font-black">ERP</span></h2>
+      <p class="text-xs text-slate-400 mt-1">Global Connect Synergy Biometric & Attendance Management</p>
     </div>
 
     @if($errors->any())
@@ -71,7 +70,7 @@
       <div>
         <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Email / Username</label>
         <input type="text" name="email" value="{{ old('email', 'admin@local.com') }}" required autofocus
-               class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+               class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
       </div>
 
       <div>
@@ -79,17 +78,17 @@
           <label class="block text-xs font-semibold uppercase text-slate-400">Password</label>
         </div>
         <input type="password" name="password" value="admin123" required
-               class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+               class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
       </div>
 
       <div class="flex items-center justify-between text-xs pt-1">
         <label class="flex items-center space-x-2 cursor-pointer text-slate-400 hover:text-slate-300">
-          <input type="checkbox" name="remember" class="w-3.5 h-3.5 rounded text-blue-600 bg-slate-950 border-slate-700">
+          <input type="checkbox" name="remember" class="w-3.5 h-3.5 rounded text-red-600 bg-slate-950 border-slate-700 focus:ring-red-500">
           <span>Remember me</span>
         </label>
       </div>
 
-      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs transition duration-200 shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2">
+      <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs transition duration-200 shadow-lg shadow-red-600/30 flex items-center justify-center space-x-2 cursor-pointer">
         <span>Sign In to ERP Portal</span>
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
       </button>
