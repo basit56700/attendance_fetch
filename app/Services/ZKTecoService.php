@@ -72,6 +72,7 @@ class ZKTecoService
         $errNo = 0;
         $errStr = '';
         $fp = @fsockopen($ip, $port, $errNo, $errStr, 2.5);
+        $isSocketReachable = ($fp !== false);
         if ($fp) {
             fclose($fp);
             $probeLatency = round((microtime(true) - $probeStart) * 1000, 1);
@@ -130,15 +131,15 @@ class ZKTecoService
                 $diag['error_summary'] = 'Device is online, healthy, and communicating normally.';
                 return $diag;
             } else {
-                return $this->diagnoseFailure($ip, $port, $errNo, $errStr, $startTime);
+                return $this->diagnoseFailure($ip, $port, $errNo, $errStr, $startTime, $isSocketReachable);
             }
         } catch (Exception $e) {
             $this->disconnect();
-            return $this->diagnoseFailure($ip, $port, $errNo, $e->getMessage(), $startTime);
+            return $this->diagnoseFailure($ip, $port, $errNo, $e->getMessage(), $startTime, $isSocketReachable);
         }
     }
 
-    protected function diagnoseFailure(string $ip, int $port, int $errNo, string $msg, float $startTime): array
+    protected function diagnoseFailure(string $ip, int $port, int $errNo, string $msg, float $startTime, bool $isSocketReachable = false): array
     {
         $latency = round((microtime(true) - $startTime) * 1000, 1);
         $diag = [
@@ -151,17 +152,39 @@ class ZKTecoService
             'device_time' => null,
         ];
 
-        if ($errNo === 10060 || stripos($msg, 'timed out') !== false || stripos($msg, 'Resource temporarily unavailable') !== false) {
-            $diag['error_code'] = 'ERR_SOCKET_TIMEOUT (10060)';
-            $diag['error_summary'] = "Connection to {$ip}:{$port} timed out after {$latency}ms without receiving any response.";
-            $diag['root_cause'] = "The biometric machine did not respond. Check if the device is powered on, or if your server/PC is on a different network subnet (e.g. 172.16.100.x vs 172.16.50.x).";
-            $diag['resolution_steps'] = [
-                "1. Protocol setting: Switch the communication protocol to 'Auto (UDP & TCP)' or 'UDP Only' (standard ZK).",
-                "2. Subnet / IP Routing: Ensure this machine can reach {$ip}. If on different VLANs, verify router gateway routing.",
-                "3. Machine Screen: Press Menu -> Comm. -> Ethernet, and verify the IP and Gateway match your network.",
-                "4. Firewall: Allow UDP and TCP port 4370 in your network router/firewall."
-            ];
-        } elseif ($errNo === 10061 || stripos($msg, 'Connection refused') !== false) {
+        $localIp = gethostbyname(gethostname());
+        $isDifferentSubnet = false;
+        $ipParts = explode('.', $ip);
+        $localParts = explode('.', $localIp);
+        if (count($ipParts) === 4 && count($localParts) === 4) {
+            if ($ipParts[0] === $localParts[0] && $ipParts[1] === $localParts[1] && $ipParts[2] !== $localParts[2]) {
+                $isDifferentSubnet = true;
+            }
+        }
+
+        if (!$isSocketReachable || $errNo === 10060 || stripos($msg, 'timed out') !== false || stripos($msg, 'not properly respond') !== false || stripos($msg, 'Resource temporarily unavailable') !== false) {
+            $diag['error_code'] = 'ERR_HOST_UNREACHABLE';
+            $diag['error_summary'] = "Cannot reach {$ip}:{$port}. No response from host across your local network.";
+            if ($isDifferentSubnet) {
+                $diag['root_cause'] = "Subnet boundary: This computer (IP: {$localIp}) is on subnet {$localParts[0]}.{$localParts[1]}.{$localParts[2]}.x, while the machine ({$ip}) is on subnet {$ipParts[0]}.{$ipParts[1]}.{$ipParts[2]}.x. Network packets are not routed between these subnets from this workstation.";
+                $diag['resolution_steps'] = [
+                    "1. Testing on Workstation vs Production: If you are running on your local laptop, you can still click 'Save Biometric Machine' below! When deployed on your production server (where your original /var/www/html/ script ran), the server will connect directly.",
+                    "2. Network Routing: If you want this laptop to reach {$ip}, configure your router to allow routing between subnet {$localParts[0]}.{$localParts[1]}.{$localParts[2]}.x and {$ipParts[0]}.{$ipParts[1]}.{$ipParts[2]}.x.",
+                    "3. Device Status: Ensure the machine is powered ON and Ethernet cable is connected with active link lights."
+                ];
+            } else {
+                $diag['root_cause'] = "The biometric machine did not respond. Check power, cable connection, or firewall rules on port {$port}.";
+                $diag['resolution_steps'] = [
+                    "1. Check that the biometric machine is powered ON.",
+                    "2. Verify the Ethernet cable is connected and link LEDs are blinking.",
+                    "3. In machine Menu -> Comm. -> Ethernet, confirm IP is {$ip} and Gateway is correct.",
+                    "4. Try 'ping {$ip}' in terminal to verify basic network connectivity."
+                ];
+            }
+            return $diag;
+        }
+
+        if ($errNo === 10061 || stripos($msg, 'Connection refused') !== false) {
             $diag['error_code'] = 'ERR_CONNECTION_REFUSED (10061)';
             $diag['error_summary'] = "Target host {$ip} actively refused the connection on Port {$port}.";
             $diag['root_cause'] = "The IP address exists on your network, but Port {$port} is closed, or another device is occupying that IP.";
@@ -170,16 +193,17 @@ class ZKTecoService
                 "2. Verify Machine Port: In ZKTeco Menu -> Comm. -> PC Connect, verify Port is {$port} (4370).",
                 "3. Protocol: Switch to Auto or UDP Only."
             ];
-        } else {
-            $diag['error_code'] = 'ERR_HANDSHAKE_FAILED';
-            $diag['error_summary'] = "Could not complete ZKTeco binary protocol handshake with {$ip}:{$port}. " . ($msg ?: 'No response');
-            $diag['root_cause'] = "The device is reachable at the network layer, but failed the proprietary ZKTeco protocol initialization.";
-            $diag['resolution_steps'] = [
-                "1. Switch Protocol: In machine settings, change protocol to 'Auto (UDP & TCP)' or 'UDP Only'. Your original PHP code uses UDP.",
-                "2. Power cycle the biometric device (turn OFF, wait 5 seconds, turn ON).",
-                "3. Check whether another software (such as ZKAccess or ZKBioTime) is holding an exclusive socket lock on this machine."
-            ];
+            return $diag;
         }
+
+        $diag['error_code'] = 'ERR_HANDSHAKE_FAILED';
+        $diag['error_summary'] = "Could not complete ZKTeco binary protocol handshake with {$ip}:{$port}. " . ($msg ?: 'No response');
+        $diag['root_cause'] = "The device is reachable at the network layer, but failed the proprietary ZKTeco protocol initialization.";
+        $diag['resolution_steps'] = [
+            "1. Switch Protocol: In machine settings, change protocol to 'Auto (UDP & TCP)' or 'UDP Only'. Your original PHP code uses UDP.",
+            "2. Power cycle the biometric device (turn OFF, wait 5 seconds, turn ON).",
+            "3. Check whether another software (such as ZKAccess or ZKBioTime) is holding an exclusive socket lock on this machine."
+        ];
 
         return $diag;
     }
