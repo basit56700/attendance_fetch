@@ -306,9 +306,20 @@ class ZKLibrary
         $command = hexdec($u['h2'].$u['h1']);
         if ($command == CMD_ACK_OK) {
             return true;
-        } else {
-            return false;
         }
+
+        $meaning = match ($command) {
+            2001 => 'CMD_ACK_ERROR (General command error / Session rejected)',
+            2002 => 'CMD_ACK_DATA (Unexpected data packet)',
+            2003 => 'CMD_ACK_RETRY (Device busy / Retry requested)',
+            2004 => 'CMD_ACK_REPEAT (Repeat packet)',
+            2005 => 'CMD_ACK_UNAUTH (Unauthorized! Device requires a Communication Key / Password)',
+            default => "Unknown command code: {$command} (Hex: 0x" . dechex($command) . ")",
+        };
+        $hexDump = bin2hex(substr($reply, 0, min(16, strlen($reply))));
+        $this->last_error = "Device replied with {$meaning}. Raw: {$hexDump}";
+
+        return false;
     }
 
     public function execCommand($command, $command_string = '', $offset_data = 8)
