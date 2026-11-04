@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,6 +14,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.login');
     }
 
@@ -24,17 +26,18 @@ class AuthController extends Controller
         ]);
 
         // Support login by either email or username
-        $user = \App\Models\User::where('email', $credentials['email'])->first();
+        $user = User::where('email', $credentials['email'])->first();
 
         if ($user && $user->status !== 'active') {
             AuditLog::log('LOGIN_BLOCKED', "Disabled user attempted login: {$credentials['email']}", 'failed');
+
             return back()->withErrors(['email' => 'This account is deactivated. Please contact an administrator.'])->withInput();
         }
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            /** @var \App\Models\User $authUser */
+            /** @var User $authUser */
             $authUser = Auth::user();
             $authUser->update(['last_login_at' => now()]);
 

@@ -14,6 +14,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::orderBy('created_at', 'desc')->paginate(20);
+
         return view('users.index', compact('users'));
     }
 
@@ -56,7 +57,7 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:6'],
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);

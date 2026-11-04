@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceMachine;
 use App\Models\AuditLog;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {

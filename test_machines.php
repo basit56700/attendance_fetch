@@ -104,8 +104,9 @@ $allMachines = [
     ],
 ];
 
-// Check CLI argument for single machine filter
+// Check CLI argument for single machine filter & optional comm key
 $targetIp = $argv[1] ?? null;
+$targetCommKey = isset($argv[2]) ? (int) $argv[2] : 0;
 if ($targetIp) {
     $machines = array_filter($allMachines, function ($m) use ($targetIp) {
         return $m['ip'] === $targetIp;
@@ -314,10 +315,13 @@ foreach ($machines as $m) {
 
         if ($zk) {
             $zk->setTimeout(4, 0);
-            $zkConnected = $zk->connect();
+            $zkConnected = $zk->connect($ip, $port, $targetCommKey);
 
             if ($zkConnected) {
                 echo "SUCCESS!\n";
+                if ($zk->comm_key !== null) {
+                    echo "       • Comm Key Auth    : Authenticated with key [{$zk->comm_key}]\n";
+                }
                 $version = $zk->getVersion();
                 if ($version) {
                     echo '       • Firmware Version : '.trim($version)."\n";

@@ -34,6 +34,7 @@ class AuditLog extends Model
     public static function log(string $action, ?string $details = null, string $status = 'success', ?int $userId = null, ?string $username = null): self
     {
         $currentUser = auth()->user();
+
         return self::create([
             'user_id' => $userId ?? $currentUser?->id,
             'username' => $username ?? $currentUser?->name ?? 'System/Guest',

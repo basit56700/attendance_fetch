@@ -362,3 +362,39 @@ textarea:focus {
   border-color: #e6272f !important;
   box-shadow: 0 0 0 1px #e6272f !important;
 }
+
+/* ========================================================
+   LOGO LIGHT / DARK MODE DYNAMIC BRAND ADAPTATION (IPDR STYLE)
+   ======================================================== */
+
+/* Dark Mode Logo Treatment: Crisp transparent silhouette via brightness(0) invert(1) */
+html.dark #sidebar-brand-logo,
+html.dark #mobile-brand-logo,
+html.dark #header-brand-logo,
+html.dark #login-brand-logo,
+html.dark .brand-logo-adaptive {
+  filter: brightness(0) invert(1) !important;
+  -webkit-filter: brightness(0) invert(1) !important;
+  opacity: 0.95 !important;
+}
+
+html.dark #sidebar-brand-logo:hover,
+html.dark #mobile-brand-logo:hover,
+html.dark #header-brand-logo:hover,
+html.dark #login-brand-logo:hover,
+html.dark .brand-logo-adaptive:hover {
+  opacity: 1 !important;
+}
+
+/* Light Mode Logo Treatment: Crisp natural brand colors (Navy & Red) on light backgrounds */
+html.light #sidebar-brand-logo,
+html.light #mobile-brand-logo,
+html.light #header-brand-logo,
+html.light #login-brand-logo,
+html.light .brand-logo-adaptive,
+html.light header img,
+html.light aside img {
+  filter: none !important;
+  -webkit-filter: none !important;
+  opacity: 1 !important;
+}

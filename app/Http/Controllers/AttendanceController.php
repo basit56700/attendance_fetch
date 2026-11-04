@@ -22,7 +22,7 @@ class AttendanceController extends Controller
         }
 
         if ($request->filled('erp_id')) {
-            $query->where('erp_id', 'like', '%' . trim($request->input('erp_id')) . '%');
+            $query->where('erp_id', 'like', '%'.trim($request->input('erp_id')).'%');
         }
 
         if ($request->filled('machine_id')) {
@@ -62,7 +62,7 @@ class AttendanceController extends Controller
 
         AuditLog::log('ATTENDANCE_EXPORT_JSON', "Exported {$records->count()} attendance records in JSON format", 'success');
 
-        $fileName = 'attendance_export_' . now()->format('Ymd_His') . '.json';
+        $fileName = 'attendance_export_'.now()->format('Ymd_His').'.json';
         $jsonContent = json_encode($records, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         return response($jsonContent, 200, [
@@ -78,9 +78,9 @@ class AttendanceController extends Controller
     {
         $query = $this->getFilteredQuery($request);
 
-        $fileName = 'attendance_export_' . now()->format('Ymd_His') . '.csv';
+        $fileName = 'attendance_export_'.now()->format('Ymd_His').'.csv';
 
-        AuditLog::log('ATTENDANCE_EXPORT_CSV', "Exported attendance records in CSV format", 'success');
+        AuditLog::log('ATTENDANCE_EXPORT_CSV', 'Exported attendance records in CSV format', 'success');
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -154,7 +154,7 @@ class AttendanceController extends Controller
         }
 
         if ($request->filled('erp_id')) {
-            $query->where('erp_id', 'like', '%' . trim($request->input('erp_id')) . '%');
+            $query->where('erp_id', 'like', '%'.trim($request->input('erp_id')).'%');
         }
 
         if ($request->filled('machine_id')) {

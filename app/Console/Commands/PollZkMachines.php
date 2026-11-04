@@ -13,6 +13,7 @@ use Illuminate\Console\Command;
 class PollZkMachines extends Command
 {
     protected $signature = 'zk:poll {machine_id? : Optional single machine ID to fetch}';
+
     protected $description = 'Polls configured ZKTeco biometric attendance machines and stores records';
 
     public function handle(ZKTecoService $zkService)
@@ -27,10 +28,11 @@ class PollZkMachines extends Command
 
         if ($machines->isEmpty()) {
             $this->warn('No active machines found to poll.');
+
             return 0;
         }
 
-        $this->info("Polling " . $machines->count() . " machine(s)...");
+        $this->info('Polling '.$machines->count().' machine(s)...');
 
         $totalNew = 0;
 
@@ -84,22 +86,23 @@ class PollZkMachines extends Command
                             $machine->comm_key
                         );
                         AuditLog::log('AUTO_CLEAR_DEVICE_LOGS', "Cleared memory on machine '{$machine->name}' per background policy.", 'warning');
-                        $this->line("  ↳ Cleared device memory per system policy.");
+                        $this->line('  ↳ Cleared device memory per system policy.');
                     } catch (Exception $ce) {
-                        $this->warn("  ↳ Could not clear machine logs: " . $ce->getMessage());
+                        $this->warn('  ↳ Could not clear machine logs: '.$ce->getMessage());
                     }
                 }
 
                 $totalNew += $newCount;
-                $this->info("✓ Fetched " . count($records) . " records from {$machine->name} ({$newCount} new saved).");
+                $this->info('✓ Fetched '.count($records)." records from {$machine->name} ({$newCount} new saved).");
             } catch (Exception $e) {
                 $machine->update(['last_error' => $e->getMessage()]);
-                $this->error("✕ Error on {$machine->name}: " . $e->getMessage());
-                AuditLog::log('MACHINE_POLL_FAILED', "Polling error on '{$machine->name}': " . $e->getMessage(), 'failed');
+                $this->error("✕ Error on {$machine->name}: ".$e->getMessage());
+                AuditLog::log('MACHINE_POLL_FAILED', "Polling error on '{$machine->name}': ".$e->getMessage(), 'failed');
             }
         }
 
         $this->info("Polling complete. Total {$totalNew} new attendance records inserted.");
+
         return 0;
     }
 }

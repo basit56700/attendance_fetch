@@ -31,6 +31,20 @@
       meta.content = isDark ? 'dark' : 'light';
     }
 
+    // Dynamic brand logo adaptation for light and dark mode (IPDR style)
+    const logoSelectors = ['#sidebar-brand-logo', '#mobile-brand-logo', '#header-brand-logo', '#login-brand-logo', '.brand-logo-adaptive'];
+    document.querySelectorAll(logoSelectors.join(',')).forEach((logo) => {
+      if (isDark) {
+        logo.style.filter = 'brightness(0) invert(1)';
+        logo.style.opacity = '0.95';
+        logo.classList.add('brightness-0', 'invert');
+      } else {
+        logo.style.filter = 'none';
+        logo.style.opacity = '1';
+        logo.classList.remove('brightness-0', 'invert');
+      }
+    });
+
     // Update all toggle buttons in DOM (header, login, settings)
     document.querySelectorAll('.theme-toggle-btn').forEach((btn) => {
       const sunIcon = btn.querySelector('.theme-sun-icon');

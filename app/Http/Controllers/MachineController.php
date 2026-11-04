@@ -23,6 +23,7 @@ class MachineController extends Controller
     public function index()
     {
         $machines = AttendanceMachine::withCount('attendanceLogs')->get();
+
         return view('machines.index', compact('machines'));
     }
 
@@ -97,7 +98,7 @@ class MachineController extends Controller
         $protocol = $request->input('protocol', 'auto');
         $commKey = (int) $request->input('comm_key', 0);
 
-        if (!$ip) {
+        if (! $ip) {
             return response()->json([
                 'success' => false,
                 'error_code' => 'ERR_EMPTY_IP',
@@ -110,7 +111,7 @@ class MachineController extends Controller
 
         AuditLog::log(
             'MACHINE_TEST',
-            "Tested connection to {$ip}:{$port} ({$protocol}). Result: " . ($diag['success'] ? "SUCCESS (Latency: {$diag['latency_ms']}ms)" : "FAILED: {$diag['error_code']}"),
+            "Tested connection to {$ip}:{$port} ({$protocol}). Result: ".($diag['success'] ? "SUCCESS (Latency: {$diag['latency_ms']}ms)" : "FAILED: {$diag['error_code']}"),
             $diag['success'] ? 'success' : 'failed'
         );
 
@@ -206,7 +207,7 @@ class MachineController extends Controller
                         AuditLog::log('AUTO_CLEAR_DEVICE_LOGS', "Cleared memory on machine '{$machine->name}' ({$machine->ip_address}) per policy.", 'warning');
                     }
                 } catch (Exception $ce) {
-                    $clearedMsg = ' Note: Could not clear device logs: ' . $ce->getMessage();
+                    $clearedMsg = ' Note: Could not clear device logs: '.$ce->getMessage();
                 }
             }
 
@@ -220,9 +221,9 @@ class MachineController extends Controller
         } catch (Exception $e) {
             $machine->update(['last_error' => $e->getMessage()]);
 
-            AuditLog::log('MACHINE_FETCH_FAILED', "Failed to fetch from '{$machine->name}': " . $e->getMessage(), 'failed');
+            AuditLog::log('MACHINE_FETCH_FAILED', "Failed to fetch from '{$machine->name}': ".$e->getMessage(), 'failed');
 
-            return back()->with('error', "Could not fetch attendance from '{$machine->name}': " . $e->getMessage());
+            return back()->with('error', "Could not fetch attendance from '{$machine->name}': ".$e->getMessage());
         }
     }
 
@@ -261,7 +262,9 @@ class MachineController extends Controller
                             'sync_status' => 'synced',
                         ]
                     );
-                    if ($created->wasRecentlyCreated) $newInMach++;
+                    if ($created->wasRecentlyCreated) {
+                        $newInMach++;
+                    }
                 }
 
                 $machine->update([
@@ -275,7 +278,8 @@ class MachineController extends Controller
                     try {
                         $this->zkService->clearAttendance($machine->ip_address, $machine->port, $machine->protocol, $machine->comm_key);
                         AuditLog::log('AUTO_CLEAR_DEVICE_LOGS', "Cleared memory on machine '{$machine->name}' per policy.", 'warning');
-                    } catch (Exception $ce) {}
+                    } catch (Exception $ce) {
+                    }
                 }
 
                 $totalNew += $newInMach;
@@ -287,7 +291,7 @@ class MachineController extends Controller
 
         AuditLog::log('MACHINE_FETCH_ALL', "Batch fetch finished. New records: {$totalNew}, Machines failed: {$failedCount}", $failedCount > 0 ? 'warning' : 'success');
 
-        return back()->with('success', "Batch fetch completed. Recorded {$totalNew} new punches across " . ($activeMachines->count() - $failedCount) . " machines.");
+        return back()->with('success', "Batch fetch completed. Recorded {$totalNew} new punches across ".($activeMachines->count() - $failedCount).' machines.');
     }
 
     /**
@@ -302,12 +306,14 @@ class MachineController extends Controller
                 $this->zkService->disconnect();
                 if ($synced) {
                     AuditLog::log('SYNC_TIME', "Clock synchronized on '{$machine->name}'", 'success');
+
                     return back()->with('success', "Device clock on '{$machine->name}' synchronized with computer time.");
                 }
             }
+
             return back()->with('error', "Could not synchronize time on '{$machine->name}'.");
         } catch (Exception $e) {
-            return back()->with('error', "Clock sync error: " . $e->getMessage());
+            return back()->with('error', 'Clock sync error: '.$e->getMessage());
         }
     }
 
@@ -320,11 +326,13 @@ class MachineController extends Controller
             $ok = $this->zkService->clearAttendance($machine->ip_address, $machine->port, $machine->protocol, $machine->comm_key);
             if ($ok) {
                 AuditLog::log('CLEAR_DEVICE_LOGS', "Cleared attendance logs on '{$machine->name}' ({$machine->ip_address})", 'warning');
+
                 return back()->with('success', "Attendance logs cleared from device '{$machine->name}'.");
             }
-            return back()->with('error', "Failed to clear attendance logs on device.");
+
+            return back()->with('error', 'Failed to clear attendance logs on device.');
         } catch (Exception $e) {
-            return back()->with('error', "Error clearing logs: " . $e->getMessage());
+            return back()->with('error', 'Error clearing logs: '.$e->getMessage());
         }
     }
 }

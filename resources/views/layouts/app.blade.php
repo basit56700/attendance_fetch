@@ -38,11 +38,11 @@
   <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 hidden md:flex">
     <!-- Brand Header -->
     <div class="p-4 border-b border-slate-800/80 bg-slate-900/40">
-      <a href="{{ route('dashboard') }}" class="block group">
-        <!-- Crisp White Logo Plaque for Maximum Contrast & Clarity in Both Light and Dark Themes -->
-        <div class="w-full bg-white rounded-2xl px-3.5 py-2.5 shadow-sm border border-slate-200/90 flex items-center justify-center transition duration-200 group-hover:shadow-md group-hover:border-red-500/40">
-          <img src="{{ asset('images/gcs-logo.png') }}" alt="Global Connect Synergy" class="h-9 w-auto max-w-full object-contain">
-        </div>
+      <a href="{{ route('dashboard') }}" class="flex items-center justify-center group py-1.5">
+        <img id="sidebar-brand-logo"
+             src="{{ asset('images/gcs-logo.png') }}" 
+             alt="Global Connect Synergy" 
+             class="h-10 w-auto max-w-[190px] object-contain brightness-0 invert opacity-95 group-hover:opacity-100 transition duration-200">
       </a>
       <div class="mt-2.5 flex items-center justify-between px-1">
         <div class="text-xs font-bold text-white tracking-tight flex items-center space-x-1.5">
@@ -127,8 +127,13 @@
     <header class="h-16 bg-slate-900/60 border-b border-slate-800/80 sticky top-0 z-20 backdrop-blur-md px-6 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <!-- Mobile Logo Icon -->
-        <div class="md:hidden bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
-          <img src="{{ asset('images/gcs-icon.png') }}" alt="GCS" class="w-6 h-6 object-contain">
+        <div class="md:hidden flex items-center shrink-0">
+          <a href="{{ route('dashboard') }}" class="group flex items-center">
+            <img id="mobile-brand-logo"
+                 src="{{ asset('images/gcs-icon.png') }}" 
+                 alt="GCS" 
+                 class="w-7 h-7 object-contain brightness-0 invert opacity-95 group-hover:opacity-100 transition duration-200">
+          </a>
         </div>
         <h1 class="text-base font-bold text-white tracking-tight">@yield('page_title', 'Attendance Management')</h1>
         <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium hidden sm:inline-flex items-center space-x-1">

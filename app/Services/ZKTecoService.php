@@ -102,9 +102,9 @@ class ZKTecoService
         // 3. Try Proven ZKLibrary (UDP) first if protocol is 'auto' or 'udp'
         if ($protocol === 'auto' || $protocol === 'udp') {
             try {
-                $zk = new ZKLibrary($ip, $port);
+                $zk = new ZKLibrary($ip, $port, $commKey);
                 $zk->setTimeout(3, 0);
-                if ($zk->connect()) {
+                if ($zk->connect($ip, $port, $commKey)) {
                     $latency = round((microtime(true) - $startTime) * 1000, 1);
                     $version = $zk->getVersion() ?: $zk->getFirmwareVersion() ?: 'ZKTeco TFT / B&W';
                     $devTime = null;
@@ -311,9 +311,9 @@ class ZKTecoService
         // 1. Try Proven ZKLibrary (UDP) first
         if ($protocol === 'auto' || $protocol === 'udp') {
             try {
-                $zk = new ZKLibrary($ip, $port);
+                $zk = new ZKLibrary($ip, $port, $commKey);
                 $zk->setTimeout(6, 0);
-                if ($zk->connect()) {
+                if ($zk->connect($ip, $port, $commKey)) {
                     $rawLogs = $zk->getAttendance();
                     $zk->disconnect();
 
@@ -406,9 +406,9 @@ class ZKTecoService
     {
         if ($protocol === 'auto' || $protocol === 'udp') {
             try {
-                $zk = new ZKLibrary($ip, $port);
+                $zk = new ZKLibrary($ip, $port, $commKey);
                 $zk->setTimeout(5, 0);
-                if ($zk->connect()) {
+                if ($zk->connect($ip, $port, $commKey)) {
                     $ok = $zk->clearAttendance();
                     $zk->disconnect();
 

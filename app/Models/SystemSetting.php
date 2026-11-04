@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class SystemSetting extends Model
 {
     protected $primaryKey = 'key';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -19,6 +21,7 @@ class SystemSetting extends Model
     public static function get(string $key, $default = null)
     {
         $setting = self::find($key);
+
         return $setting ? $setting->value : $default;
     }
 

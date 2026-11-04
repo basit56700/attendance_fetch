@@ -12,11 +12,11 @@ class AuditLogController extends Controller
         $query = AuditLog::with('user')->orderBy('created_at', 'desc');
 
         if ($request->filled('action')) {
-            $query->where('action', 'like', '%' . trim($request->input('action')) . '%');
+            $query->where('action', 'like', '%'.trim($request->input('action')).'%');
         }
 
         if ($request->filled('username')) {
-            $query->where('username', 'like', '%' . trim($request->input('username')) . '%');
+            $query->where('username', 'like', '%'.trim($request->input('username')).'%');
         }
 
         if ($request->filled('status')) {
@@ -36,7 +36,7 @@ class AuditLogController extends Controller
 
     public function clear(Request $request)
     {
-        if (!auth()->user()->isAdmin()) {
+        if (! auth()->user()->isAdmin()) {
             abort(403, 'Unauthorized');
         }
 

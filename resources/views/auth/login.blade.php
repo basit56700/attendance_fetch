@@ -42,14 +42,21 @@
       <span class="theme-label font-medium">Light Mode</span>
     </button>
   </div>
-  <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative">
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center bg-white rounded-3xl px-7 py-3.5 shadow-md border border-slate-200/90 mb-4 mx-auto transition hover:shadow-lg">
-        <img src="{{ asset('images/gcs-logo.png') }}" alt="Global Connect Synergy" class="h-12 w-auto object-contain">
+  <div class="max-w-md w-full">
+    <!-- Brand & Portal Header -->
+    <div class="text-center mb-6 flex flex-col items-center">
+      <div class="h-16 flex items-center justify-center mb-3">
+        <img id="login-brand-logo"
+             src="{{ asset('images/gcs-logo.png') }}" 
+             alt="Global Connect Synergy" 
+             class="h-14 sm:h-16 w-auto max-w-[240px] object-contain brightness-0 invert opacity-95 transition duration-200">
       </div>
-      <h2 class="text-2xl font-extrabold text-white tracking-tight">Attendance <span class="text-red-500 font-black">ERP</span></h2>
+      <h1 class="text-2xl font-black tracking-tight text-white uppercase">Attendance <span class="text-red-500 font-black">ERP</span></h1>
       <p class="text-xs text-slate-400 mt-1">Global Connect Synergy Biometric & Attendance Management</p>
     </div>
+
+    <!-- Login Card -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative">
 
     @if($errors->any())
       <div class="mb-5 bg-red-950/60 border border-red-800 text-red-300 p-3 rounded-xl text-xs space-y-1">
@@ -100,5 +107,6 @@
       </div>
     </form>
   </div>
+</div>
 </body>
 </html>

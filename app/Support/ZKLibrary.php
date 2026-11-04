@@ -23,6 +23,10 @@ define('CMD_CHANGE_SPEED', 1101);
 define('CMD_ACK_OK', 2000);
 define('CMD_ACK_ERROR', 2001);
 define('CMD_ACK_DATA', 2002);
+define('CMD_ACK_RETRY', 2003);
+define('CMD_ACK_REPEAT', 2004);
+define('CMD_ACK_UNAUTH', 2005);
+define('CMD_AUTH', 1102);
 define('CMD_PREPARE_DATA', 1500);
 define('CMD_DATA', 1501);
 
@@ -77,7 +81,39 @@ class ZKLibrary
 
     public $last_error = '';
 
-    public function __construct($ip = null, $port = null)
+    public $comm_key = 0;
+
+    public function setCommKey($key): void
+    {
+        $this->comm_key = (int) $key;
+    }
+
+    public function makeCommKey(int $key, int $sessionId, int $ticks = 50): string
+    {
+        $k = 0;
+        for ($i = 0; $i < 32; $i++) {
+            if ($key & (1 << $i)) {
+                $k = ($k << 1 | 1);
+            } else {
+                $k = $k << 1;
+            }
+        }
+        $k = ($k + $sessionId) & 0xFFFFFFFF;
+        $bytes = unpack('C4', pack('V', $k));
+        $k0 = $bytes[1] ^ 90; // 'Z'
+        $k1 = $bytes[2] ^ 75; // 'K'
+        $k2 = $bytes[3] ^ 83; // 'S'
+        $k3 = $bytes[4] ^ 79; // 'O'
+
+        $half = unpack('v2', pack('C4', $k0, $k1, $k2, $k3));
+        $swapped = unpack('C4', pack('v2', $half[2], $half[1]));
+
+        $B = 0xFF & $ticks;
+
+        return pack('C4', $swapped[1] ^ $B, $swapped[2] ^ $B, $B, $swapped[4] ^ $B);
+    }
+
+    public function __construct($ip = null, $port = null, $commKey = 0)
     {
         if ($ip != null) {
             $this->ip = $ip;
@@ -85,6 +121,7 @@ class ZKLibrary
         if ($port != null) {
             $this->port = $port;
         }
+        $this->comm_key = (int) $commKey;
         $this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         $this->setTimeout($this->timeout_sec, $this->timeout_usec);
     }
@@ -96,13 +133,16 @@ class ZKLibrary
         unset($this->attendance_data);
     }
 
-    public function connect($ip = null, $port = 4370)
+    public function connect($ip = null, $port = 4370, $commKey = null)
     {
         if ($ip != null) {
             $this->ip = $ip;
         }
         if ($port != null) {
             $this->port = $port;
+        }
+        if ($commKey !== null) {
+            $this->comm_key = (int) $commKey;
         }
         if ($this->ip == null || $this->port == null) {
             $this->last_error = 'IP or Port is null';
@@ -132,6 +172,44 @@ class ZKLibrary
             if ($received !== false && strlen($this->received_data) > 0) {
                 $u = unpack('H2h1/H2h2/H2h3/H2h4/H2h5/H2h6', substr($this->received_data, 0, 8));
                 $this->session_id = hexdec($u['h6'].$u['h5']);
+                $respCmd = hexdec($u['h2'].$u['h1']);
+
+                if ($respCmd === CMD_ACK_OK) {
+                    return true;
+                }
+
+                // If device requests authorization (CMD_ACK_UNAUTH = 2005)
+                if ($respCmd === CMD_ACK_UNAUTH) {
+                    $u8 = unpack('H2h1/H2h2/H2h3/H2h4/H2h5/H2h6/H2h7/H2h8', substr($this->received_data, 0, 8));
+                    $authReplyId = hexdec($u8['h8'].$u8['h7']);
+
+                    // Test with configured commKey, then 0, and common defaults
+                    $keysToTry = array_unique([$this->comm_key, 0, 1234, 1, 8888]);
+
+                    foreach ($keysToTry as $candKey) {
+                        $authPayload = $this->makeCommKey((int) $candKey, $this->session_id);
+                        $authBuf = $this->createHeader(CMD_AUTH, 0, $this->session_id, $authReplyId, $authPayload);
+
+                        @socket_sendto($this->socket, $authBuf, strlen($authBuf), 0, $this->ip, $this->port);
+                        $authRecv = @socket_recvfrom($this->socket, $this->received_data, 1024, 0, $fromIp, $fromPort);
+
+                        if ($authRecv !== false && strlen($this->received_data) >= 8) {
+                            $uAuth = unpack('H2h1/H2h2/H2h3/H2h4/H2h5/H2h6', substr($this->received_data, 0, 8));
+                            $authCmd = hexdec($uAuth['h2'].$uAuth['h1']);
+
+                            if ($authCmd === CMD_ACK_OK) {
+                                $this->session_id = hexdec($uAuth['h6'].$uAuth['h5']);
+                                $this->comm_key = $candKey;
+
+                                return true;
+                            }
+                        }
+                    }
+
+                    $this->last_error = 'Device requires a Communication Key (Password). Tested keys: ['.implode(', ', $keysToTry).'], but authorization failed.';
+
+                    return false;
+                }
 
                 return $this->checkValid($this->received_data);
             } else {
@@ -314,7 +392,7 @@ class ZKLibrary
             2003 => 'CMD_ACK_RETRY (Device busy / Retry requested)',
             2004 => 'CMD_ACK_REPEAT (Repeat packet)',
             2005 => 'CMD_ACK_UNAUTH (Unauthorized! Device requires a Communication Key / Password)',
-            default => "Unknown command code: {$command} (Hex: 0x" . dechex($command) . ")",
+            default => "Unknown command code: {$command} (Hex: 0x".dechex($command).')',
         };
         $hexDump = bin2hex(substr($reply, 0, min(16, strlen($reply))));
         $this->last_error = "Device replied with {$meaning}. Raw: {$hexDump}";
