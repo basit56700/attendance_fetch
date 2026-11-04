@@ -1,0 +1,267 @@
+/**
+ * Enterprise Light / Dark Mode Theme System
+ * Built following modern web guidance for color-scheme, dark-mode, and dark-mode-toggle.
+ */
+
+:root {
+  color-scheme: light dark;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="dark"]),
+html.dark {
+  color-scheme: dark;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="light"]),
+html.light {
+  color-scheme: light;
+}
+
+/* ========================================================
+   LIGHT MODE STYLING SPECIFICATIONS
+   ======================================================== */
+
+html.light body {
+  background-color: #f8fafc !important; /* slate-50 */
+  color: #0f172a !important; /* slate-900 */
+}
+
+/* Navigation & Header Surfaces */
+html.light aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e2e8f0 !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Background surfaces */
+html.light .bg-slate-950 {
+  background-color: #f1f5f9 !important; /* slate-100 */
+}
+
+html.light .bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05) !important;
+}
+
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/85 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+html.light .bg-slate-800\/60 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Hover States */
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-700:hover,
+html.light .hover\:bg-slate-800\/60:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Borders */
+html.light .border-slate-800,
+html.light .border-slate-700,
+html.light .border-slate-700\/80,
+html.light .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Typography Colors */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Inputs, Selects, and Textareas */
+html.light input[type="text"],
+html.light input[type="email"],
+html.light input[type="password"],
+html.light input[type="number"],
+html.light input[type="date"],
+html.light input[type="time"],
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #2563eb !important;
+  background-color: #ffffff !important;
+  outline: none !important;
+}
+
+/* Tables */
+html.light table th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light table td {
+  border-color: #f1f5f9 !important;
+}
+
+html.light table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Code & Pre */
+html.light pre,
+html.light code {
+  color-scheme: light;
+}
+
+/* Modals */
+html.light #diagnosticModal,
+html.light #jsonModal {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+html.light #diagnosticModal > div,
+html.light #jsonModal > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Retain Brand Accents & Colors */
+html.light .bg-blue-600 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.light .text-blue-500,
+html.light .text-blue-400 {
+  color: #2563eb !important;
+}
+
+html.light .text-emerald-400 {
+  color: #059669 !important;
+}
+
+html.light .text-amber-400 {
+  color: #d97706 !important;
+}
+
+html.light .text-red-400 {
+  color: #dc2626 !important;
+}
+
+html.light .text-purple-400 {
+  color: #7c3aed !important;
+}
+
+/* Flash alerts in light mode */
+html.light .bg-emerald-950\/60 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
+}
+html.light .bg-emerald-950\/60 svg,
+html.light .bg-emerald-950\/60 span {
+  color: #065f46 !important;
+}
+
+html.light .bg-red-950\/60 {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #991b1b !important;
+}
+html.light .bg-red-950\/60 svg,
+html.light .bg-red-950\/60 span {
+  color: #991b1b !important;
+}
+
+html.light .bg-amber-950\/60 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+html.light .bg-amber-950\/60 svg,
+html.light .bg-amber-950\/60 span {
+  color: #92400e !important;
+}
+
+/* Badges & Chips */
+html.light .bg-emerald-500\/10 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #059669 !important;
+}
+
+html.light .bg-blue-500\/10,
+html.light .bg-blue-600\/20 {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #2563eb !important;
+}
+
+html.light .bg-amber-500\/10 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #d97706 !important;
+}
+
+html.light .bg-red-500\/10 {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #dc2626 !important;
+}
+
+/* Theme Toggle Button Specific Styles */
+#themeToggleBtn {
+  transition: all 0.2s ease-in-out;
+}
+html.light #themeToggleBtn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+html.light #themeToggleBtn:hover {
+  background-color: #f1f5f9 !important;
+}
