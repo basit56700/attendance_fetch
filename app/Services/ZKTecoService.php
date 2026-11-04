@@ -103,17 +103,20 @@ class ZKTecoService
         if ($protocol === 'auto' || $protocol === 'udp') {
             try {
                 $zk = new ZKLibrary($ip, $port, $commKey);
-                $zk->setTimeout(3, 0);
+                $zk->setTimeout(5, 0);
                 if ($zk->connect($ip, $port, $commKey)) {
                     $latency = round((microtime(true) - $startTime) * 1000, 1);
                     $version = $zk->getVersion() ?: $zk->getFirmwareVersion() ?: 'ZKTeco TFT / B&W';
                     $devTime = null;
                     try {
                         $devTime = $zk->getTime();
-                    } catch (Exception $te) {
+                    } catch (\Throwable $te) {
                     }
 
-                    $zk->disconnect();
+                    try {
+                        $zk->disconnect();
+                    } catch (\Throwable $de) {
+                    }
 
                     $diag['success'] = true;
                     $diag['protocol'] = 'UDP (Standard ZK)';
@@ -127,7 +130,11 @@ class ZKTecoService
 
                     return $diag;
                 }
-            } catch (Exception $ze) {
+                if (! empty($zk->last_error)) {
+                    $errStr = $zk->last_error;
+                }
+            } catch (\Throwable $ze) {
+                $errStr = $ze->getMessage();
             }
         }
 
