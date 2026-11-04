@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\ZKLibrary;
 use Exception;
 
 class ZKTecoService
@@ -14,8 +15,8 @@ class ZKTecoService
     const CMD_DEVICE = 11;
     const CMD_GET_TIME = 201;
     const CMD_SET_TIME = 202;
-    const CMD_ATTLOG_RRQ = 501;
-    const CMD_CLEAR_ATTLOG = 503;
+    const CMD_ATTLOG_RRQ = 13;
+    const CMD_CLEAR_ATTLOG = 15;
 
     const CMD_ACK_OK = 2000;
     const CMD_ACK_ERROR = 2001;
@@ -33,10 +34,7 @@ class ZKTecoService
     protected $isConnected = false;
 
     /**
-     * Runs comprehensive pre-connection diagnostics on a biometric machine.
-     * Evaluates IP reachability, port 4370 accessibility, protocol handshake,
-     * comm key verification, firmware, serial number and clock drift.
-     * If an issue occurs, provides root cause analysis and resolution instructions.
+     * Runs pre-connection diagnostics on a biometric machine.
      */
     public function runDiagnostics(string $ip, int $port = 4370, string $protocol = 'auto', int $commKey = 0): array
     {
@@ -69,12 +67,11 @@ class ZKTecoService
             return $diag;
         }
 
-        // 2. Pre-flight Port Socket Probe (TCP probe with fast 2.5s timeout)
+        // 2. Pre-flight Port Socket Probe (TCP ping with fast 2.5s timeout)
         $probeStart = microtime(true);
         $errNo = 0;
         $errStr = '';
         $fp = @fsockopen($ip, $port, $errNo, $errStr, 2.5);
-
         if ($fp) {
             fclose($fp);
             $probeLatency = round((microtime(true) - $probeStart) * 1000, 1);
@@ -82,9 +79,38 @@ class ZKTecoService
             $probeLatency = null;
         }
 
-        // 3. Attempt ZK Handshake
+        // 3. Try Proven ZKLibrary (UDP) first if protocol is 'auto' or 'udp'
+        if ($protocol === 'auto' || $protocol === 'udp') {
+            try {
+                $zk = new ZKLibrary($ip, $port);
+                $zk->setTimeout(3, 0);
+                if ($zk->connect()) {
+                    $latency = round((microtime(true) - $startTime) * 1000, 1);
+                    $version = $zk->getVersion() ?: $zk->getFirmwareVersion() ?: 'ZKTeco TFT / B&W';
+                    $devTime = null;
+                    try {
+                        $devTime = $zk->getTime();
+                    } catch (Exception $te) {}
+
+                    $zk->disconnect();
+
+                    $diag['success'] = true;
+                    $diag['protocol'] = 'UDP (Standard ZK)';
+                    $diag['latency_ms'] = $latency;
+                    $diag['firmware'] = is_string($version) ? trim($version) : 'ZKTeco Device';
+                    $diag['device_time'] = $devTime;
+                    if ($devTime) {
+                        $diag['time_drift_seconds'] = abs(strtotime($devTime) - time());
+                    }
+                    $diag['error_summary'] = 'Device is online, healthy, and communicating normally via UDP.';
+                    return $diag;
+                }
+            } catch (Exception $ze) {}
+        }
+
+        // 4. Try TCP fallback or explicit TCP
         try {
-            $connected = $this->connect($ip, $port, $protocol, $commKey, 4.0);
+            $connected = $this->connect($ip, $port, $protocol, $commKey, 3.5);
 
             if ($connected) {
                 $diag['latency_ms'] = round((microtime(true) - $startTime) * 1000, 1);
@@ -112,9 +138,6 @@ class ZKTecoService
         }
     }
 
-    /**
-     * Determines root cause and actionable resolution steps based on error signatures.
-     */
     protected function diagnoseFailure(string $ip, int $port, int $errNo, string $msg, float $startTime): array
     {
         $latency = round((microtime(true) - $startTime) * 1000, 1);
@@ -128,52 +151,39 @@ class ZKTecoService
             'device_time' => null,
         ];
 
-        // Analyze error conditions
         if ($errNo === 10060 || stripos($msg, 'timed out') !== false || stripos($msg, 'Resource temporarily unavailable') !== false) {
             $diag['error_code'] = 'ERR_SOCKET_TIMEOUT (10060)';
             $diag['error_summary'] = "Connection to {$ip}:{$port} timed out after {$latency}ms without receiving any response.";
-            $diag['root_cause'] = "The biometric machine did not respond to network packets. This typically occurs when the device is powered off, the Ethernet cable is unplugged, or your laptop is on a different network subnet.";
+            $diag['root_cause'] = "The biometric machine did not respond. Check if the device is powered on, or if your server/PC is on a different network subnet (e.g. 172.16.100.x vs 172.16.50.x).";
             $diag['resolution_steps'] = [
-                "1. Cable Check: If connected directly via Ethernet cable to your laptop, ensure the network adapter link light is blinking.",
-                "2. IP Subnet Match: If machine IP is '192.168.1.201', configure your laptop's Ethernet adapter to static IP '192.168.1.100' (Subnet: 255.255.255.0).",
-                "3. Device Menu Check: On the machine keypad, press Menu -> Comm. -> Ethernet, and verify the IP and Gateway match your local network.",
-                "4. Windows Firewall: Ensure Windows Defender Firewall allows outbound and inbound traffic on Port 4370 (UDP and TCP)."
+                "1. Protocol setting: Switch the communication protocol to 'Auto (UDP & TCP)' or 'UDP Only' (standard ZK).",
+                "2. Subnet / IP Routing: Ensure this machine can reach {$ip}. If on different VLANs, verify router gateway routing.",
+                "3. Machine Screen: Press Menu -> Comm. -> Ethernet, and verify the IP and Gateway match your network.",
+                "4. Firewall: Allow UDP and TCP port 4370 in your network router/firewall."
             ];
         } elseif ($errNo === 10061 || stripos($msg, 'Connection refused') !== false) {
             $diag['error_code'] = 'ERR_CONNECTION_REFUSED (10061)';
             $diag['error_summary'] = "Target host {$ip} actively refused the connection on Port {$port}.";
-            $diag['root_cause'] = "The IP address exists on your network, but Port {$port} is closed, or another device (like an office printer or router) is occupying that IP.";
+            $diag['root_cause'] = "The IP address exists on your network, but Port {$port} is closed, or another device is occupying that IP.";
             $diag['resolution_steps'] = [
-                "1. Verify IP Conflict: Confirm that another device on your office network is not using {$ip}.",
-                "2. Verify Machine Port: In the ZKTeco device Menu -> Comm. -> PC Connect, verify that Port is set to {$port} (standard is 4370).",
-                "3. Try Switching Protocol: Change protocol setting from Auto to TCP or UDP."
-            ];
-        } elseif (stripos($msg, 'unauthorized') !== false || stripos($msg, 'comm key') !== false) {
-            $diag['error_code'] = 'ERR_COMMKEY_MISMATCH';
-            $diag['error_summary'] = "Machine rejected the connection due to Communication Password mismatch.";
-            $diag['root_cause'] = "The biometric machine has an internal communication security password configured in its firmware menu.";
-            $diag['resolution_steps'] = [
-                "1. On the machine screen, open Menu -> Comm. -> PC Connect -> Comm Key.",
-                "2. If it displays a numeric key (e.g. 1234 or 0), enter the exact same key in the Machine Settings here.",
-                "3. If unsure, set the Comm Key on the device to 0 (default: no password)."
+                "1. Confirm no other device is conflicting on {$ip}.",
+                "2. Verify Machine Port: In ZKTeco Menu -> Comm. -> PC Connect, verify Port is {$port} (4370).",
+                "3. Protocol: Switch to Auto or UDP Only."
             ];
         } else {
             $diag['error_code'] = 'ERR_HANDSHAKE_FAILED';
             $diag['error_summary'] = "Could not complete ZKTeco binary protocol handshake with {$ip}:{$port}. " . ($msg ?: 'No response');
             $diag['root_cause'] = "The device is reachable at the network layer, but failed the proprietary ZKTeco protocol initialization.";
             $diag['resolution_steps'] = [
-                "1. Try toggling between UDP and TCP protocol modes in the machine settings.",
+                "1. Switch Protocol: In machine settings, change protocol to 'Auto (UDP & TCP)' or 'UDP Only'. Your original PHP code uses UDP.",
                 "2. Power cycle the biometric device (turn OFF, wait 5 seconds, turn ON).",
-                "3. Check whether another software (such as ZKAccess or ZKBioTime) is currently holding an exclusive socket lock on this machine."
+                "3. Check whether another software (such as ZKAccess or ZKBioTime) is holding an exclusive socket lock on this machine."
             ];
         }
 
         return $diag;
     }
 
-    /**
-     * Connects to ZKTeco machine over UDP or TCP on port 4370.
-     */
     public function connect(string $ip, int $port = 4370, string $protocol = 'auto', int $commKey = 0, float $timeout = 4.0): bool
     {
         $this->disconnect();
@@ -240,9 +250,50 @@ class ZKTecoService
 
     /**
      * Downloads attendance punch logs from the machine.
+     * Uses battle-tested ZKLibrary UDP first, falling back to TCP socket.
      */
     public function getAttendance(string $ip, int $port = 4370, string $protocol = 'auto', int $commKey = 0): array
     {
+        // 1. Try Proven ZKLibrary (UDP) first
+        if ($protocol === 'auto' || $protocol === 'udp') {
+            try {
+                $zk = new ZKLibrary($ip, $port);
+                $zk->setTimeout(6, 0);
+                if ($zk->connect()) {
+                    $rawLogs = $zk->getAttendance();
+                    $zk->disconnect();
+
+                    if (is_array($rawLogs)) {
+                        $records = [];
+                        foreach ($rawLogs as $at) {
+                            $state = (int) $at[2];
+                            $type_remarks = match ($state) {
+                                0 => 'IN',
+                                1 => 'OUT',
+                                2 => 'Break OUT',
+                                3 => 'Break IN',
+                                4 => 'Overtime IN',
+                                5 => 'Overtime OUT',
+                                default => "Status {$state}",
+                            };
+
+                            $records[] = [
+                                'uid' => $at[0],
+                                'erp_id' => (string) trim($at[1]),
+                                'punch_type' => $state,
+                                'type_remarks' => $type_remarks,
+                                'attendance_time' => $at[3],
+                                'verification_mode' => 'Fingerprint',
+                                'work_code' => '0',
+                            ];
+                        }
+                        return $records;
+                    }
+                }
+            } catch (Exception $ze) {}
+        }
+
+        // 2. Fallback to native socket protocol
         if (!$this->isConnected) {
             if (!$this->connect($ip, $port, $protocol, $commKey)) {
                 throw new Exception("Unable to connect to biometric machine at {$ip}:{$port}");
@@ -295,6 +346,18 @@ class ZKTecoService
      */
     public function clearAttendance(string $ip, int $port = 4370, string $protocol = 'auto', int $commKey = 0): bool
     {
+        if ($protocol === 'auto' || $protocol === 'udp') {
+            try {
+                $zk = new ZKLibrary($ip, $port);
+                $zk->setTimeout(5, 0);
+                if ($zk->connect()) {
+                    $ok = $zk->clearAttendance();
+                    $zk->disconnect();
+                    return (bool) $ok;
+                }
+            } catch (Exception $ze) {}
+        }
+
         if (!$this->isConnected) {
             if (!$this->connect($ip, $port, $protocol, $commKey)) {
                 return false;
@@ -538,10 +601,11 @@ class ZKTecoService
         $verifyMode = $modes[$verify] ?? 'Fingerprint';
 
         return [
+            'uid' => $userId,
             'erp_id' => $userId,
-            'attendance_time' => $time,
             'punch_type' => $state,
             'type_remarks' => $remarks,
+            'attendance_time' => $time,
             'verification_mode' => $verifyMode,
             'work_code' => '0',
         ];
