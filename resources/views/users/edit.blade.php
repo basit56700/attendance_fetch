@@ -7,7 +7,7 @@
 <div class="max-w-xl mx-auto space-y-6">
 
   <div>
-    <a href="{{ route('users.index') }}" class="text-xs text-blue-400 hover:text-blue-300 font-medium">&larr; Back to Users</a>
+    <a href="{{ route('users.index') }}" class="text-xs text-red-400 hover:text-red-300 font-medium">&larr; Back to Users</a>
     <h2 class="text-xl font-bold text-white mt-1">Edit User: {{ $user->name }}</h2>
     <p class="text-xs text-slate-400 mt-0.5">Update credentials or permission tier.</p>
   </div>
@@ -57,7 +57,7 @@
 
       <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
         <a href="{{ route('users.index') }}" class="px-5 py-2.5 text-xs text-slate-400 hover:text-white transition">Cancel</a>
-        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-6 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/30">
+        <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-semibold text-xs px-6 py-2.5 rounded-xl transition shadow-lg shadow-red-600/30 cursor-pointer">
           Save User Changes
         </button>
       </div>

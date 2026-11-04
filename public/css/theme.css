@@ -1,10 +1,25 @@
 /**
- * Enterprise Light / Dark Mode Theme System
- * Built following modern web guidance for color-scheme, dark-mode, and dark-mode-toggle.
+ * Global Connect Synergy (GCS) Theme System
+ * Primary Brand Palette:
+ * - Corporate Midnight Navy: #10203d (Deep Navy / #09111e / #0f1d35)
+ * - Corporate Vibrant Red:    #e6272f (Chevron / Accent / Action Red)
+ * - Clean Light Contrast:     #ffffff / #f8fafc
  */
 
 :root {
   color-scheme: light dark;
+  --gcs-navy: #10203d;
+  --gcs-navy-deep: #09111e;
+  --gcs-navy-aside: #0b1526;
+  --gcs-navy-card: #0f1d35;
+  --gcs-navy-input: #070e19;
+  --gcs-navy-border: #162a4a;
+  --gcs-navy-border-hover: #223e6b;
+  
+  --gcs-red: #e6272f;
+  --gcs-red-hover: #cf1f27;
+  --gcs-red-glow: rgba(230, 39, 47, 0.25);
+  --gcs-red-subtle: rgba(230, 39, 47, 0.12);
 }
 
 :root:has(> head > meta[name="color-scheme"][content="dark"]),
@@ -18,12 +33,85 @@ html.light {
 }
 
 /* ========================================================
+   GCS CORPORATE DARK MODE (MIDNIGHT NAVY & CRIMSON ACCENT)
+   ======================================================== */
+
+html.dark body {
+  background-color: #09111e !important; /* Rich Midnight Navy */
+  color: #f1f5f9 !important;
+}
+
+/* Navigation & Header Surfaces */
+html.dark aside {
+  background-color: #0b1526 !important;
+  border-color: #162a4a !important;
+}
+
+html.dark header {
+  background-color: rgba(11, 21, 38, 0.85) !important;
+  border-color: #162a4a !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Surface cards, modals & containers */
+html.dark .bg-slate-900 {
+  background-color: #0f1d35 !important;
+  border-color: #162a4a !important;
+}
+
+html.dark .bg-slate-950 {
+  background-color: #070e19 !important;
+  border-color: #142642 !important;
+}
+
+html.dark .bg-slate-950\/70,
+html.dark .bg-slate-950\/80,
+html.dark .bg-slate-950\/85,
+html.dark .bg-slate-900\/40,
+html.dark .bg-slate-900\/50,
+html.dark .bg-slate-900\/60 {
+  background-color: #091322 !important;
+  border-color: #162a4a !important;
+}
+
+html.dark .bg-slate-800 {
+  background-color: #132542 !important;
+  border-color: #1e3862 !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .bg-slate-800\/60 {
+  background-color: #112038 !important;
+}
+
+/* Borders */
+html.dark .border-slate-800,
+html.dark .border-slate-800\/80,
+html.dark .border-slate-800\/60 {
+  border-color: #162a4a !important;
+}
+
+html.dark .border-slate-700,
+html.dark .border-slate-700\/80,
+html.dark .border-slate-700\/60 {
+  border-color: #203c68 !important;
+}
+
+/* Hover States in Dark Mode */
+html.dark .hover\:bg-slate-800:hover,
+html.dark .hover\:bg-slate-700:hover,
+html.dark .hover\:bg-slate-800\/60:hover {
+  background-color: #182e52 !important;
+  color: #ffffff !important;
+}
+
+/* ========================================================
    LIGHT MODE STYLING SPECIFICATIONS
    ======================================================== */
 
 html.light body {
-  background-color: #f8fafc !important; /* slate-50 */
-  color: #0f172a !important; /* slate-900 */
+  background-color: #f8fafc !important; /* Slate-50 */
+  color: #0f172a !important; /* Slate-900 */
 }
 
 /* Navigation & Header Surfaces */
@@ -33,22 +121,23 @@ html.light aside {
 }
 
 html.light header {
-  background-color: rgba(255, 255, 255, 0.9) !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
   border-color: #e2e8f0 !important;
   backdrop-filter: blur(12px) !important;
 }
 
-/* Background surfaces */
+/* Background surfaces in Light Mode */
 html.light .bg-slate-950 {
-  background-color: #f1f5f9 !important; /* slate-100 */
+  background-color: #f1f5f9 !important; /* Slate-100 */
 }
 
 html.light .bg-slate-900 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05) !important;
+  box-shadow: 0 1px 3px 0 rgb(16 32 61 / 0.05), 0 1px 2px -1px rgb(16 32 61 / 0.05) !important;
 }
 
+html.light .bg-slate-900\/40,
 html.light .bg-slate-900\/50,
 html.light .bg-slate-900\/60,
 html.light .bg-slate-950\/60,
@@ -69,7 +158,7 @@ html.light .bg-slate-800\/60 {
   background-color: #f1f5f9 !important;
 }
 
-/* Hover States */
+/* Hover States in Light Mode */
 html.light .hover\:bg-slate-800:hover,
 html.light .hover\:bg-slate-700:hover,
 html.light .hover\:bg-slate-800\/60:hover {
@@ -77,7 +166,7 @@ html.light .hover\:bg-slate-800\/60:hover {
   color: #0f172a !important;
 }
 
-/* Borders */
+/* Borders in Light Mode */
 html.light .border-slate-800,
 html.light .border-slate-700,
 html.light .border-slate-700\/80,
@@ -85,7 +174,7 @@ html.light .border-slate-800\/80 {
   border-color: #e2e8f0 !important;
 }
 
-/* Typography Colors */
+/* Typography Colors in Light Mode */
 html.light .text-white {
   color: #0f172a !important;
 }
@@ -107,7 +196,7 @@ html.light .text-slate-500 {
   color: #64748b !important;
 }
 
-/* Inputs, Selects, and Textareas */
+/* Inputs, Selects, and Textareas in Light Mode */
 html.light input[type="text"],
 html.light input[type="email"],
 html.light input[type="password"],
@@ -129,12 +218,12 @@ html.light textarea::placeholder {
 html.light input:focus,
 html.light select:focus,
 html.light textarea:focus {
-  border-color: #2563eb !important;
+  border-color: #e6272f !important;
   background-color: #ffffff !important;
   outline: none !important;
 }
 
-/* Tables */
+/* Tables in Light Mode */
 html.light table th {
   background-color: #f8fafc !important;
   color: #475569 !important;
@@ -149,16 +238,10 @@ html.light table tbody tr:hover {
   background-color: #f8fafc !important;
 }
 
-/* Code & Pre */
-html.light pre,
-html.light code {
-  color-scheme: light;
-}
-
-/* Modals */
+/* Modals in Light Mode */
 html.light #diagnosticModal,
 html.light #jsonModal {
-  background-color: rgba(15, 23, 42, 0.45) !important;
+  background-color: rgba(16, 32, 61, 0.45) !important;
 }
 
 html.light #diagnosticModal > div,
@@ -168,41 +251,81 @@ html.light #jsonModal > div {
   color: #0f172a !important;
 }
 
-/* Retain Brand Accents & Colors */
-html.light .bg-blue-600 {
-  background-color: #2563eb !important;
+/* ========================================================
+   GCS BRAND ACCENT & ACTION STYLING
+   ======================================================== */
+
+/* Primary Brand Red Action Elements */
+.bg-red-600 {
+  background-color: #e6272f !important;
   color: #ffffff !important;
 }
 
-html.light .text-blue-500,
-html.light .text-blue-400 {
-  color: #2563eb !important;
+.hover\:bg-red-500:hover,
+.hover\:bg-red-700:hover {
+  background-color: #cf1f27 !important;
 }
 
+.text-red-500,
+.text-red-600 {
+  color: #e6272f !important;
+}
+
+.text-red-400 {
+  color: #f87171 !important;
+}
+
+.shadow-red-600\/20,
+.shadow-red-600\/25,
+.shadow-red-600\/30 {
+  box-shadow: 0 8px 18px -3px rgba(230, 39, 47, 0.28), 0 4px 6px -4px rgba(230, 39, 47, 0.2) !important;
+}
+
+/* Corporate Red Gradient for Active Nav Pill */
+.nav-active-pill {
+  background: linear-gradient(135deg, #e6272f 0%, #c91820 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(230, 39, 47, 0.3) !important;
+}
+
+/* Map remaining generic blue utilities to GCS brand red for seamless harmony */
+.bg-blue-600 {
+  background-color: #e6272f !important;
+  color: #ffffff !important;
+}
+
+.hover\:bg-blue-500:hover {
+  background-color: #cf1f27 !important;
+}
+
+.text-blue-500 {
+  color: #e6272f !important;
+}
+
+.shadow-blue-600\/20,
+.shadow-blue-600\/30 {
+  box-shadow: 0 8px 18px -3px rgba(230, 39, 47, 0.28), 0 4px 6px -4px rgba(230, 39, 47, 0.2) !important;
+}
+
+/* Functional status colors (Success, Warning) preserved for clarity */
+.text-emerald-400 {
+  color: #10b981 !important;
+}
 html.light .text-emerald-400 {
   color: #059669 !important;
 }
 
+.text-amber-400 {
+  color: #f59e0b !important;
+}
 html.light .text-amber-400 {
   color: #d97706 !important;
 }
 
-html.light .text-red-400 {
-  color: #dc2626 !important;
-}
-
-html.light .text-purple-400 {
-  color: #7c3aed !important;
-}
-
-/* Flash alerts in light mode */
+/* Flash alerts */
 html.light .bg-emerald-950\/60 {
   background-color: #ecfdf5 !important;
   border-color: #a7f3d0 !important;
-  color: #065f46 !important;
-}
-html.light .bg-emerald-950\/60 svg,
-html.light .bg-emerald-950\/60 span {
   color: #065f46 !important;
 }
 
@@ -211,39 +334,18 @@ html.light .bg-red-950\/60 {
   border-color: #fecaca !important;
   color: #991b1b !important;
 }
-html.light .bg-red-950\/60 svg,
-html.light .bg-red-950\/60 span {
-  color: #991b1b !important;
-}
 
 html.light .bg-amber-950\/60 {
   background-color: #fffbeb !important;
   border-color: #fde68a !important;
   color: #92400e !important;
 }
-html.light .bg-amber-950\/60 svg,
-html.light .bg-amber-950\/60 span {
-  color: #92400e !important;
-}
 
-/* Badges & Chips */
+/* Status chips */
 html.light .bg-emerald-500\/10 {
   background-color: #ecfdf5 !important;
   border-color: #a7f3d0 !important;
   color: #059669 !important;
-}
-
-html.light .bg-blue-500\/10,
-html.light .bg-blue-600\/20 {
-  background-color: #eff6ff !important;
-  border-color: #bfdbfe !important;
-  color: #2563eb !important;
-}
-
-html.light .bg-amber-500\/10 {
-  background-color: #fffbeb !important;
-  border-color: #fde68a !important;
-  color: #d97706 !important;
 }
 
 html.light .bg-red-500\/10 {
@@ -252,16 +354,11 @@ html.light .bg-red-500\/10 {
   color: #dc2626 !important;
 }
 
-/* Theme Toggle Button Specific Styles */
-#themeToggleBtn {
-  transition: all 0.2s ease-in-out;
-}
-html.light #themeToggleBtn {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-}
-html.light #themeToggleBtn:hover {
-  background-color: #f1f5f9 !important;
+/* Focus and selection outlines */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: #e6272f !important;
+  box-shadow: 0 0 0 1px #e6272f !important;
 }

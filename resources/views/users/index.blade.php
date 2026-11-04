@@ -12,7 +12,7 @@
       <h2 class="text-lg font-bold text-white">System Users & Roles</h2>
       <p class="text-xs text-slate-400 mt-0.5">Manage staff access permissions, role tiers and account status.</p>
     </div>
-    <a href="{{ route('users.create') }}" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center space-x-1.5">
+    <a href="{{ route('users.create') }}" class="bg-red-600 hover:bg-red-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-red-600/20 flex items-center space-x-1.5 cursor-pointer">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
       <span>Create New User</span>
     </a>
@@ -37,7 +37,7 @@
             <tr class="hover:bg-slate-800/40 transition">
               <td class="py-3 px-4">
                 <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs">
+                  <div class="w-8 h-8 rounded-xl bg-red-600/20 text-red-400 border border-red-500/30 flex items-center justify-center font-bold text-xs">
                     {{ substr($user->name, 0, 1) }}
                   </div>
                   <div>
@@ -51,7 +51,7 @@
                 @php
                   $roleBadge = match($user->role) {
                     'admin' => 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-                    'hr' => 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                    'hr' => 'bg-red-500/10 text-red-400 border-red-500/20',
                     'operator' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                     default => 'bg-slate-800 text-slate-400 border-slate-700',
                   };
@@ -73,7 +73,7 @@
               </td>
               <td class="py-3 px-4 text-right">
                 <div class="flex items-center justify-end space-x-2">
-                  <a href="{{ route('users.edit', $user) }}" class="text-slate-400 hover:text-blue-400 p-1.5 hover:bg-slate-800 rounded-lg transition" title="Edit User">
+                  <a href="{{ route('users.edit', $user) }}" class="text-slate-400 hover:text-red-400 p-1.5 hover:bg-slate-800 rounded-lg transition" title="Edit User">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </a>
                   @if($user->id !== auth()->id())

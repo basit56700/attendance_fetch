@@ -49,7 +49,7 @@
 
       <div class="flex flex-wrap items-center justify-between pt-4 mt-3 border-t border-slate-800/80 gap-3">
         <div class="flex items-center space-x-2">
-          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-sm">
+          <button type="submit" class="bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-sm cursor-pointer">
             Apply Filters
           </button>
           <a href="{{ route('attendance.index') }}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3.5 py-2 rounded-xl transition">
