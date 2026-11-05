@@ -48,10 +48,11 @@
 
         <div>
           <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Communication Protocol</label>
-          <select name="protocol" id="machProtocol" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+          <select name="protocol" id="machProtocol" onchange="toggleAdmsBox()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
             <option value="auto">Auto (UDP & TCP Auto-detect)</option>
             <option value="udp">UDP Only (Most B&W / TFT models)</option>
             <option value="tcp">TCP Only (SilkID / SpeedFace / Linux)</option>
+            <option value="adms">ADMS Push (Real-time Cloud for F22 / TimeCloud)</option>
           </select>
         </div>
 
@@ -68,6 +69,22 @@
             <option value="inactive">Inactive / Standby</option>
           </select>
         </div>
+      </div>
+
+      <!-- ADMS Device Configuration Helper Box -->
+      <div id="admsHelperBox" class="hidden mt-4 p-4 bg-blue-950/30 border border-blue-500/40 rounded-xl text-xs space-y-2 text-blue-200">
+        <div class="font-bold flex items-center gap-1.5 text-blue-300">
+          <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>ZKTeco F22 / ADMS Cloud Setup Instructions</span>
+        </div>
+        <p class="text-slate-300 leading-relaxed">On your biometric device screen, open <strong class="text-white">Menu &rarr; Comm. &rarr; Cloud Server Setting</strong> and enter:</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+          <div><span class="text-slate-500 block text-[10px]">Server Address:</span><span class="text-emerald-400 font-bold select-all">{{ request()->server('SERVER_ADDR') ?: request()->getHost() }}</span></div>
+          <div><span class="text-slate-500 block text-[10px]">Server Port:</span><span class="text-emerald-400 font-bold select-all">{{ request()->server('SERVER_PORT') ?: '80' }}</span></div>
+          <div><span class="text-slate-500 block text-[10px]">Server Mode:</span><span class="text-white font-bold">ADMS</span></div>
+          <div><span class="text-slate-500 block text-[10px]">HTTPS / Proxy:</span><span class="text-white font-bold">OFF</span></div>
+        </div>
+        <p class="text-[11px] text-slate-400">The F22 will push every punch directly into this ERP in real-time with zero polling delay!</p>
       </div>
 
       <!-- ========================================== -->
@@ -112,6 +129,19 @@
 
 @push('scripts')
 <script>
+function toggleAdmsBox() {
+  const proto = document.getElementById('machProtocol').value;
+  const box = document.getElementById('admsHelperBox');
+  if (box) {
+    if (proto === 'adms') {
+      box.classList.remove('hidden');
+    } else {
+      box.classList.add('hidden');
+    }
+  }
+}
+document.addEventListener('DOMContentLoaded', toggleAdmsBox);
+
 function runPreAddDiagnostic() {
   const ip = document.getElementById('machIp').value;
   const port = document.getElementById('machPort').value;

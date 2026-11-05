@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdmsPushController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
@@ -14,6 +15,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// ZKTeco ADMS Cloud Push Endpoints (Real-time biometric push for F22, SpeedFace, TimeCloud)
+Route::match(['GET', 'POST'], '/iclock/cdata', [AdmsPushController::class, 'cdata'])->name('adms.cdata');
+Route::match(['GET', 'POST'], '/iclock/push', [AdmsPushController::class, 'push'])->name('adms.push');
+Route::match(['GET', 'POST'], '/iclock/getrequest', [AdmsPushController::class, 'getRequest'])->name('adms.getrequest');
+Route::match(['GET', 'POST'], '/iclock/devicecmd', [AdmsPushController::class, 'deviceCmd'])->name('adms.devicecmd');
+Route::match(['GET', 'POST'], '/iclock/fdata', [AdmsPushController::class, 'fdata'])->name('adms.fdata');
+Route::match(['GET', 'POST'], '/iclock/registry', [AdmsPushController::class, 'registry'])->name('adms.registry');
 
 // Public JSON REST API Endpoint for integrations
 Route::get('/api/v1/attendance', [AttendanceController::class, 'apiIndex'])->name('api.attendance');

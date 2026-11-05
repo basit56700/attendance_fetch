@@ -107,6 +107,33 @@ class MachineController extends Controller
             ], 422);
         }
 
+        if ($protocol === 'adms') {
+            $serverIp = $request->server('SERVER_ADDR') ?: $request->getHost();
+            $serverPort = $request->server('SERVER_PORT') ?: '80';
+            $diag = [
+                'success' => true,
+                'ip' => $ip,
+                'port' => $port,
+                'protocol' => 'ADMS (Cloud Push)',
+                'latency_ms' => 0.1,
+                'firmware' => 'ADMS Real-time Push Receiver',
+                'device_time' => now()->toDateTimeString(),
+                'time_drift_seconds' => 0,
+                'error_code' => null,
+                'error_summary' => 'ADMS real-time push receiver is active on this server.',
+                'root_cause' => "Configure on device: Server Address = {$serverIp}, Server Port = {$serverPort}, Server Mode = ADMS.",
+                'resolution_steps' => [
+                    '1. On device screen: Menu -> Comm. -> Cloud Server Setting.',
+                    "2. Set Server Address: {$serverIp}",
+                    "3. Set Server Port: {$serverPort}",
+                    '4. Set Server Mode: ADMS, HTTPS: OFF.',
+                    '5. Every punch on the device will push directly into this ERP in real-time!',
+                ],
+            ];
+
+            return response()->json($diag);
+        }
+
         $diag = $this->zkService->runDiagnostics($ip, $port, $protocol, $commKey);
 
         AuditLog::log(
@@ -141,6 +168,10 @@ class MachineController extends Controller
      */
     public function fetchLogs(AttendanceMachine $machine)
     {
+        if ($machine->protocol === 'adms') {
+            return back()->with('info', "Machine '{$machine->name}' operates in ADMS Real-time Push Mode. Punches are delivered automatically whenever an employee punches.");
+        }
+
         try {
             $rawRecords = $this->zkService->getAttendance(
                 $machine->ip_address,

@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'machines/test-connection',
             'api/*',
+            'iclock/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

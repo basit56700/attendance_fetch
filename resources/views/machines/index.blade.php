@@ -49,7 +49,11 @@
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Protocol:</span>
-            <span class="text-red-400 uppercase font-bold">{{ $machine->protocol }}</span>
+            @if($machine->protocol === 'adms')
+              <span class="text-blue-400 uppercase font-bold">ADMS Push (Real-time)</span>
+            @else
+              <span class="text-red-400 uppercase font-bold">{{ $machine->protocol }}</span>
+            @endif
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Comm Key:</span>

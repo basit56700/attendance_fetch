@@ -52,6 +52,7 @@
             <option value="auto" {{ $machine->protocol === 'auto' ? 'selected' : '' }}>Auto (UDP & TCP Auto-detect)</option>
             <option value="udp" {{ $machine->protocol === 'udp' ? 'selected' : '' }}>UDP Only</option>
             <option value="tcp" {{ $machine->protocol === 'tcp' ? 'selected' : '' }}>TCP Only</option>
+            <option value="adms" {{ $machine->protocol === 'adms' ? 'selected' : '' }}>ADMS Push (Real-time Cloud for F22 / TimeCloud)</option>
           </select>
         </div>
 

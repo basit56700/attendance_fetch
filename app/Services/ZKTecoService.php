@@ -193,18 +193,18 @@ class ZKTecoService
             }
         }
 
-        if (! $isSocketReachable || $errNo === 10060 || stripos($msg, 'timed out') !== false || stripos($msg, 'not properly respond') !== false || stripos($msg, 'Resource temporarily unavailable') !== false) {
+        if (! $isSocketReachable) {
             $diag['error_code'] = 'ERR_HOST_UNREACHABLE';
             $diag['error_summary'] = "Cannot reach {$ip}:{$port}. No response from host across your local network.";
             if ($isDifferentSubnet) {
                 $diag['root_cause'] = "Subnet boundary: This computer (IP: {$localIp}) is on subnet {$localParts[0]}.{$localParts[1]}.{$localParts[2]}.x, while the machine ({$ip}) is on subnet {$ipParts[0]}.{$ipParts[1]}.{$ipParts[2]}.x. Network packets are not routed between these subnets from this workstation.";
                 $diag['resolution_steps'] = [
-                    "1. Testing on Workstation vs Production: If you are running on your local laptop, you can still click 'Save Biometric Machine' below! When deployed on your production server (where your original /var/www/html/ script ran), the server will connect directly.",
+                    "1. Testing on Workstation vs Production: If you are running on your local laptop, you can still click 'Save Biometric Machine' below! When deployed on your production server, the server will connect directly.",
                     "2. Network Routing: If you want this laptop to reach {$ip}, configure your router to allow routing between subnet {$localParts[0]}.{$localParts[1]}.{$localParts[2]}.x and {$ipParts[0]}.{$ipParts[1]}.{$ipParts[2]}.x.",
                     '3. Device Status: Ensure the machine is powered ON and Ethernet cable is connected with active link lights.',
                 ];
             } else {
-                $diag['root_cause'] = "The biometric machine did not respond. Check power, cable connection, or firewall rules on port {$port}.";
+                $diag['root_cause'] = "The biometric machine did not respond to socket probe. Check power, cable connection, or firewall rules on port {$port}.";
                 $diag['resolution_steps'] = [
                     '1. Check that the biometric machine is powered ON.',
                     '2. Verify the Ethernet cable is connected and link LEDs are blinking.',
@@ -224,6 +224,33 @@ class ZKTecoService
                 "1. Confirm no other device is conflicting on {$ip}.",
                 "2. Verify Machine Port: In ZKTeco Menu -> Comm. -> PC Connect, verify Port is {$port} (4370).",
                 '3. Protocol: Switch to Auto or UDP Only.',
+            ];
+
+            return $diag;
+        }
+
+        if (stripos($msg, 'UNAUTH') !== false || stripos($msg, 'CMD_ACK_UNAUTH') !== false || stripos($msg, 'unauthorized') !== false) {
+            $diag['error_code'] = 'ERR_UNAUTHORIZED';
+            $diag['error_summary'] = 'Device requires authentication (Communication Key).';
+            $diag['root_cause'] = 'The machine responded with CMD_ACK_UNAUTH. The Comm Key entered does not match the key on the device.';
+            $diag['resolution_steps'] = [
+                '1. Check Machine Screen: In Menu -> Comm. -> PC Connect -> Comm Key.',
+                "2. Enter the exact Comm Key in the 'Communication Key' field above.",
+                '3. Or change the Comm Key on the device to 0.',
+            ];
+
+            return $diag;
+        }
+
+        if ($errNo === 10060 || stripos($msg, 'timed out') !== false || stripos($msg, 'not properly respond') !== false || stripos($msg, 'Resource temporarily unavailable') !== false) {
+            $diag['error_code'] = 'ERR_HANDSHAKE_TIMEOUT';
+            $diag['error_summary'] = "Network ping & port 4370 are responding ({$diag['latency_ms']} ms), but device timed out answering ZKTeco protocol.";
+            $diag['root_cause'] = 'The device is reachable on your network, but the biometric application service inside the device did not reply to CMD_CONNECT. This typically indicates Cloud Server (ADMS) push mode is enabled, or the device internal software requires a power cycle.';
+            $diag['resolution_steps'] = [
+                '1. Disable Cloud Server / ADMS: On machine screen: Menu -> Comm. -> Cloud Server Setting (or ADMS / Web Server). Turn OFF Cloud Server / ADMS so the machine accepts PC polling.',
+                '2. Check Communication Key: On machine screen: Menu -> Comm. -> PC Connect -> Comm Key. If it is not 0, enter that key above.',
+                '3. Verify Subnet & Gateway: In Menu -> Comm. -> Ethernet, confirm Subnet Mask is 255.255.255.0 and Gateway is set to your router (e.g. 172.16.100.1).',
+                '4. Power Cycle: Turn the machine OFF, wait 5 seconds, and turn ON to restart the biometric service.',
             ];
 
             return $diag;

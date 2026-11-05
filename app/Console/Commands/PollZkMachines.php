@@ -37,6 +37,12 @@ class PollZkMachines extends Command
         $totalNew = 0;
 
         foreach ($machines as $machine) {
+            if ($machine->protocol === 'adms') {
+                $this->line("Skipping {$machine->name} ({$machine->ip_address}) - ADMS Real-time Push device (punches delivered automatically).");
+
+                continue;
+            }
+
             $this->line("Connecting to {$machine->name} ({$machine->ip_address}:{$machine->port})...");
 
             try {
