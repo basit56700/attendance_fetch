@@ -25,16 +25,31 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Support login by either email or username
-        $user = User::where('email', $credentials['email'])->first();
+        $loginInput = trim($credentials['email']);
+
+        // Support login by email, username, or 'admin'
+        $user = User::where('email', $loginInput)
+            ->orWhere('name', $loginInput)
+            ->orWhereRaw('LOWER(email) = ?', [strtolower($loginInput)])
+            ->orWhereRaw('LOWER(name) = ?', [strtolower($loginInput)])
+            ->first();
+
+        if (! $user && (strtolower($loginInput) === 'admin' || strtolower($loginInput) === 'admin@local.com')) {
+            $user = User::where('role', 'admin')->first();
+        }
 
         if ($user && $user->status !== 'active') {
-            AuditLog::log('LOGIN_BLOCKED', "Disabled user attempted login: {$credentials['email']}", 'failed');
+            AuditLog::log('LOGIN_BLOCKED', "Disabled user attempted login: {$loginInput}", 'failed');
 
             return back()->withErrors(['email' => 'This account is deactivated. Please contact an administrator.'])->withInput();
         }
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $authCredentials = [
+            'email' => $user ? $user->email : $loginInput,
+            'password' => $credentials['password'],
+        ];
+
+        if (Auth::attempt($authCredentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             /** @var User $authUser */
@@ -43,10 +58,10 @@ class AuthController extends Controller
 
             AuditLog::log('USER_LOGIN', "User {$authUser->name} logged in successfully.", 'success');
 
-            return redirect()->intended(route('dashboard'));
+            return redirect()->route('dashboard');
         }
 
-        AuditLog::log('LOGIN_FAILED', "Failed login attempt for: {$credentials['email']}", 'failed');
+        AuditLog::log('LOGIN_FAILED', "Failed login attempt for: {$loginInput}", 'failed');
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
