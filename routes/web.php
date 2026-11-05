@@ -24,8 +24,10 @@ Route::match(['GET', 'POST'], '/iclock/devicecmd', [AdmsPushController::class, '
 Route::match(['GET', 'POST'], '/iclock/fdata', [AdmsPushController::class, 'fdata'])->name('adms.fdata');
 Route::match(['GET', 'POST'], '/iclock/registry', [AdmsPushController::class, 'registry'])->name('adms.registry');
 
-// Public JSON REST API Endpoint for integrations
-Route::get('/api/v1/attendance', [AttendanceController::class, 'apiIndex'])->name('api.attendance');
+// Public JSON REST API Endpoints for integrations
+Route::get('/api/attendance/{machine_id?}', [AttendanceController::class, 'apiIndex'])->name('api.attendance.legacy');
+Route::get('/api/v1/attendance/{machine_id?}', [AttendanceController::class, 'apiIndex'])->name('api.attendance');
+Route::get('/api/machines/{machine_id}/attendance', [AttendanceController::class, 'apiIndex'])->name('api.machines.attendance');
 
 // Authenticated Application Routes
 Route::middleware('auth')->group(function () {
