@@ -15,16 +15,16 @@ echo "==> 2. Restarting PHP 8.4 FPM & Nginx..."
 systemctl restart php8.4-fpm
 systemctl reload nginx
 
-echo "==> 3. Setting permissions on storage, cache, and database..."
-chown -R shoaib:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/database"
-chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/database"
-chmod 664 "$APP_DIR/database/database.sqlite"
-
-echo "==> 4. Running migrations and seeders..."
+echo "==> 3. Running migrations and seeders..."
 su - shoaib -c "cd $APP_DIR && php artisan migrate --seed --force"
 
+echo "==> 4. Setting permissions on storage, cache, and database..."
+chown -R shoaib:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/database"
+chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/database"
+find "$APP_DIR/database" -type f -exec chmod 664 {} +
+
 echo "==> 5. Optimizing Laravel for production..."
-su - shoaib -c "cd $APP_DIR && php artisan optimize"
+su - shoaib -c "cd $APP_DIR && php artisan optimize:clear && php artisan optimize"
 
 echo "==> 6. Testing local endpoint on port 8087..."
 curl -sI http://127.0.0.1:8087/login | head -n 5

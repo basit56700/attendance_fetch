@@ -7,7 +7,7 @@
 <div class="space-y-6">
 
   <!-- Hero Welcome Banner -->
-  <div class="hero-banner bg-white dark:bg-gradient-to-r dark:from-blue-950/60 dark:via-slate-900 dark:to-indigo-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+  <div class="hero-banner bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
     <div>
       <h2 class="text-xl font-extrabold text-white">GCS Attendance ERP</h2>
       <p class="text-xs text-slate-400 mt-1">Multi-device management, real-time connectivity diagnostics, duplicate suppression, and JSON extraction.</p>

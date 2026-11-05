@@ -137,7 +137,18 @@ html.light .bg-slate-900 {
   box-shadow: 0 1px 3px 0 rgb(16 32 61 / 0.05), 0 1px 2px -1px rgb(16 32 61 / 0.05) !important;
 }
 
-/* Hero Welcome Banner in Light Mode: Crisp White Surface without Gradient */
+/* Hero Welcome Banner: Solid Surface in Both Light & Dark Modes (No Gradient) */
+.hero-banner {
+  background-image: none !important;
+}
+
+html.dark .hero-banner {
+  background-image: none !important;
+  background-color: #0f1d35 !important;
+  border-color: #162a4a !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25) !important;
+}
+
 html.light .hero-banner,
 html.light .bg-gradient-to-r.from-blue-950\/60 {
   background-image: none !important;
@@ -328,29 +339,114 @@ html.light #jsonModal > div {
 }
 
 /* ========================================================
-   PRO DESIGNER LIGHT-MODE ACCENT & ACTION SYSTEM
-   Calibrated for light surfaces to prevent eye fatigue & "error state" confusion:
-   - Primary Buttons: Luminous Corporate Cardinal gradient with micro-border & depth
-   - Active Navigation: Soft Ruby surface (#fef2f2) with crisp cardinal indicator (#cb1e27)
-   - Typography: Rich Crimson (#b91c1c) for authoritative legibility
-   - Focus Rings: Soft ambient halo instead of harsh red error outlines
+   PRO DESIGNER BUTTON ELEVATION SYSTEM (LIGHT MODE)
+   Solves the "too dull" problem on light surfaces:
+   - Primary Buttons: Luminous, high-energy Corporate Scarlet (#e5383b -> #c91820)
+     with crisp micro-border & colored ambient glow (never dull or muddy)
+   - Success Buttons: Vibrant Jeweled Emerald (#10b981 -> #059669) with colored lift
+   - Secondary / Utility Buttons: Crisp elevated white cards (#ffffff) with defined
+     Slate-300 borders (#cbd5e1), bold dark typography (#0f172a), and vivid icons
    ======================================================== */
 
-/* 1. Primary Action Buttons in Light Mode */
+/* General Button Smooth Transitions */
+button,
+a.rounded-xl,
+.theme-toggle-btn {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 1. Primary Action Buttons in Light Mode (Fetch, Submit, Save, Sign In) */
 html.light .bg-red-500,
 html.light .bg-red-600,
 html.light .bg-blue-600 {
-  background: linear-gradient(180deg, #cb1e27 0%, #b3141b 100%) !important;
-  border: 1px solid #9e1017 !important;
+  background: linear-gradient(180deg, #e5383b 0%, #c91820 100%) !important;
+  border: 1px solid #b31219 !important;
   color: #ffffff !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 3px 10px rgba(179, 20, 27, 0.22) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 3px 12px rgba(220, 38, 38, 0.28) !important;
 }
 
 html.light .hover\:bg-red-500:hover,
 html.light .hover\:bg-red-700:hover,
 html.light .hover\:bg-blue-500:hover {
-  background: linear-gradient(180deg, #b8151d 0%, #9e1017 100%) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(179, 20, 27, 0.3) !important;
+  background: linear-gradient(180deg, #c91820 0%, #a81117 100%) !important;
+  border-color: #8f0d12 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 6px 18px rgba(220, 38, 38, 0.38) !important;
+  transform: translateY(-1px);
+}
+
+html.light .bg-red-500:active,
+html.light .bg-red-600:active,
+html.light .bg-blue-600:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 2. Success / Create Action Buttons in Light Mode (Add & Diagnose, Add Machine) */
+html.light .bg-emerald-600,
+html.light .bg-emerald-500 {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%) !important;
+  border: 1px solid #047857 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 3px 12px rgba(16, 185, 129, 0.28) !important;
+}
+
+html.light .hover\:bg-emerald-500:hover {
+  background: linear-gradient(180deg, #059669 0%, #047857 100%) !important;
+  border-color: #065f46 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 6px 18px rgba(16, 185, 129, 0.38) !important;
+  transform: translateY(-1px);
+}
+
+html.light .bg-emerald-600:active,
+html.light .bg-emerald-500:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 3. Secondary & Utility Action Buttons in Light Mode (Export JSON, Export CSV, Diagnostics, Sync Clock, Edit, Theme Toggle, Clear Filters) */
+html.light button.bg-slate-800,
+html.light a.bg-slate-800,
+html.light .theme-toggle-btn {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.05) !important;
+}
+
+html.light button.bg-slate-800:hover,
+html.light a.bg-slate-800:hover,
+html.light .theme-toggle-btn:hover {
+  background-color: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #020617 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-1px);
+}
+
+html.light button.bg-slate-800:active,
+html.light a.bg-slate-800:active,
+html.light .theme-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* High-contrast vivid icon highlights inside Light Mode Secondary Buttons */
+html.light button.bg-slate-800 svg.text-amber-400,
+html.light a.bg-slate-800 svg.text-amber-400 {
+  color: #d97706 !important;
+}
+
+html.light button.bg-slate-800 svg.text-red-400,
+html.light a.bg-slate-800 svg.text-red-400 {
+  color: #dc2626 !important;
+}
+
+html.light button.bg-slate-800 svg.text-emerald-400,
+html.light a.bg-slate-800 svg.text-emerald-400 {
+  color: #059669 !important;
 }
 
 /* 2. Active Sidebar Navigation Pill in Light Mode */
