@@ -524,6 +524,21 @@ html.light .bg-amber-950\/60 {
   color: #92400e !important;
 }
 
+html.light .bg-blue-950\/60,
+html.light .bg-blue-950\/30 {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1e40af !important;
+}
+
+html.light #admsHelperBox .text-blue-300 {
+  color: #1d4ed8 !important;
+}
+
+html.light #admsHelperBox .text-blue-400 {
+  color: #2563eb !important;
+}
+
 /* Status chips */
 html.light .bg-emerald-500\/10 {
   background-color: #ecfdf5 !important;

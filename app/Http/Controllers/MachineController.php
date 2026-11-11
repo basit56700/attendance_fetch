@@ -34,19 +34,14 @@ class MachineController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'ip_address' => ['required', 'ip'],
-            'port' => ['required', 'integer', 'between:1,65535'],
-            'protocol' => ['required', 'in:auto,udp,tcp'],
-            'comm_key' => ['required', 'integer', 'min:0'],
-            'location' => ['nullable', 'string', 'max:150'],
-            'status' => ['required', 'in:active,inactive'],
-        ]);
+        $validated = $this->validateMachine($request);
+        if ($validated['protocol'] === 'adms') {
+            $validated['firmware_version'] = 'ADMS / Push Terminal';
+        }
 
         $machine = AttendanceMachine::create($validated);
 
-        AuditLog::log('MACHINE_CREATE', "Added machine '{$machine->name}' ({$machine->ip_address}:{$machine->port})", 'success');
+        AuditLog::log('MACHINE_CREATE', "Added machine '{$machine->name}' ({$machine->ip_address}:{$machine->port}, {$machine->protocol})", 'success');
 
         return redirect()->route('machines.index')->with('success', "Machine '{$machine->name}' added successfully.");
     }
@@ -58,21 +53,40 @@ class MachineController extends Controller
 
     public function update(Request $request, AttendanceMachine $machine)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'ip_address' => ['required', 'ip'],
-            'port' => ['required', 'integer', 'between:1,65535'],
-            'protocol' => ['required', 'in:auto,udp,tcp'],
-            'comm_key' => ['required', 'integer', 'min:0'],
-            'location' => ['nullable', 'string', 'max:150'],
-            'status' => ['required', 'in:active,inactive'],
-        ]);
+        $validated = $this->validateMachine($request);
+
+        if ($validated['protocol'] === 'adms') {
+            // Clear stale Port 4370 socket errors when switching a device to ADMS Push mode
+            $validated['last_error'] = null;
+            if (! $machine->firmware_version) {
+                $validated['firmware_version'] = 'ADMS / Push Terminal';
+            }
+        }
 
         $machine->update($validated);
 
-        AuditLog::log('MACHINE_UPDATE', "Updated machine '{$machine->name}' ({$machine->ip_address})", 'info');
+        AuditLog::log('MACHINE_UPDATE', "Updated machine '{$machine->name}' ({$machine->ip_address}, {$machine->protocol})", 'info');
 
         return redirect()->route('machines.index')->with('success', "Machine '{$machine->name}' updated successfully.");
+    }
+
+    /**
+     * Validates biometric machine input consistently for create and update actions.
+     *
+     * @return array<string, mixed>
+     */
+    protected function validateMachine(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'ip_address' => ['required', 'ip'],
+            'port' => ['required', 'integer', 'between:1,65535'],
+            'protocol' => ['required', 'in:auto,udp,tcp,adms'],
+            'comm_key' => ['required', 'integer', 'min:0'],
+            'serial_number' => ['nullable', 'string', 'max:100'],
+            'location' => ['nullable', 'string', 'max:150'],
+            'status' => ['required', 'in:active,inactive'],
+        ]);
     }
 
     public function destroy(AttendanceMachine $machine)
@@ -108,8 +122,12 @@ class MachineController extends Controller
         }
 
         if ($protocol === 'adms') {
-            $serverIp = $request->server('SERVER_ADDR') ?: $request->getHost();
-            $serverPort = $request->server('SERVER_PORT') ?: '80';
+            $host = $request->getHost();
+            $serverAddr = $request->server('SERVER_ADDR');
+            $serverIp = ($host && ! in_array($host, ['127.0.0.1', 'localhost', '::1'], true))
+                ? $host
+                : ($serverAddr ?: $host);
+            $serverPort = (string) ($request->getPort() ?: ($request->server('SERVER_PORT') ?: '80'));
             $diag = [
                 'success' => true,
                 'ip' => $ip,
@@ -271,8 +289,14 @@ class MachineController extends Controller
 
         $totalNew = 0;
         $failedCount = 0;
+        $polledCount = 0;
 
         foreach ($activeMachines as $machine) {
+            if ($machine->protocol === 'adms') {
+                continue;
+            }
+            $polledCount++;
+
             try {
                 $records = $this->zkService->getAttendance($machine->ip_address, $machine->port, $machine->protocol, $machine->comm_key);
                 $newInMach = 0;
@@ -320,9 +344,13 @@ class MachineController extends Controller
             }
         }
 
+        if ($polledCount === 0) {
+            return back()->with('info', 'All active machines use ADMS Real-time Push Mode and deliver punches automatically without polling.');
+        }
+
         AuditLog::log('MACHINE_FETCH_ALL', "Batch fetch finished. New records: {$totalNew}, Machines failed: {$failedCount}", $failedCount > 0 ? 'warning' : 'success');
 
-        return back()->with('success', "Batch fetch completed. Recorded {$totalNew} new punches across ".($activeMachines->count() - $failedCount).' machines.');
+        return back()->with('success', "Batch fetch completed. Recorded {$totalNew} new punches across ".($polledCount - $failedCount).' machine(s).');
     }
 
     /**
@@ -330,6 +358,10 @@ class MachineController extends Controller
      */
     public function syncTime(AttendanceMachine $machine)
     {
+        if ($machine->protocol === 'adms') {
+            return back()->with('info', "Machine '{$machine->name}' uses ADMS Push Mode where port 4370 pull commands are disabled by firmware.");
+        }
+
         try {
             $ok = $this->zkService->connect($machine->ip_address, $machine->port, $machine->protocol, $machine->comm_key);
             if ($ok) {
@@ -353,6 +385,10 @@ class MachineController extends Controller
      */
     public function clearLogs(AttendanceMachine $machine)
     {
+        if ($machine->protocol === 'adms') {
+            return back()->with('info', "Machine '{$machine->name}' uses ADMS Push Mode where port 4370 pull/clear commands are not used.");
+        }
+
         try {
             $ok = $this->zkService->clearAttendance($machine->ip_address, $machine->port, $machine->protocol, $machine->comm_key);
             if ($ok) {

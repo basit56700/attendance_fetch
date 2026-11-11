@@ -19,6 +19,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ZKTeco ADMS Cloud Push Endpoints (Real-time biometric push for F22, SpeedFace, TimeCloud)
 Route::match(['GET', 'POST'], '/iclock/cdata', [AdmsPushController::class, 'cdata'])->name('adms.cdata');
 Route::match(['GET', 'POST'], '/iclock/push', [AdmsPushController::class, 'push'])->name('adms.push');
+Route::match(['GET', 'POST'], '/iclock/ping', [AdmsPushController::class, 'ping'])->name('adms.ping');
 Route::match(['GET', 'POST'], '/iclock/getrequest', [AdmsPushController::class, 'getRequest'])->name('adms.getrequest');
 Route::match(['GET', 'POST'], '/iclock/devicecmd', [AdmsPushController::class, 'deviceCmd'])->name('adms.devicecmd');
 Route::match(['GET', 'POST'], '/iclock/fdata', [AdmsPushController::class, 'fdata'])->name('adms.fdata');

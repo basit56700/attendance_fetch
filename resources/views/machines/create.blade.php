@@ -18,6 +18,15 @@
   <!-- Main Card with Form & Diagnostic Sandbox -->
   <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
 
+    @if($errors->any())
+      <div class="bg-red-950/60 border border-red-800 text-red-300 p-4 rounded-xl text-xs space-y-1">
+        <div class="font-bold text-red-200">Unable to register machine:</div>
+        @foreach($errors->all() as $error)
+          <div>&bull; {{ $error }}</div>
+        @endforeach
+      </div>
+    @endif
+
     <form id="createMachineForm" action="{{ route('machines.store') }}" method="POST" class="space-y-6">
       @csrf
 
@@ -48,11 +57,12 @@
 
         <div>
           <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Communication Protocol</label>
+          @php $selectedProtocol = old('protocol', 'auto'); @endphp
           <select name="protocol" id="machProtocol" onchange="toggleAdmsBox()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-            <option value="auto">Auto (UDP & TCP Auto-detect)</option>
-            <option value="udp">UDP Only (Most B&W / TFT models)</option>
-            <option value="tcp">TCP Only (SilkID / SpeedFace / Linux)</option>
-            <option value="adms">ADMS Push (Real-time Cloud for F22 / TimeCloud)</option>
+            <option value="auto" {{ $selectedProtocol === 'auto' ? 'selected' : '' }}>Auto (UDP & TCP Auto-detect)</option>
+            <option value="udp" {{ $selectedProtocol === 'udp' ? 'selected' : '' }}>UDP Only (Most B&W / TFT models)</option>
+            <option value="tcp" {{ $selectedProtocol === 'tcp' ? 'selected' : '' }}>TCP Only (SilkID / SpeedFace / Linux)</option>
+            <option value="adms" {{ $selectedProtocol === 'adms' ? 'selected' : '' }}>ADMS Push (Real-time Cloud for F22 / TimeCloud)</option>
           </select>
         </div>
 
@@ -63,24 +73,36 @@
         </div>
 
         <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Serial Number (Optional / Auto-detected by ADMS)</label>
+          <input type="text" name="serial_number" id="machSerial" value="{{ old('serial_number') }}" placeholder="e.g. JJA1261301086"
+                 class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
           <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Status</label>
+          @php $selectedStatus = old('status', 'active'); @endphp
           <select name="status" id="machStatus" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-            <option value="active">Active (Available for polling)</option>
-            <option value="inactive">Inactive / Standby</option>
+            <option value="active" {{ $selectedStatus === 'active' ? 'selected' : '' }}>Active (Available for polling)</option>
+            <option value="inactive" {{ $selectedStatus === 'inactive' ? 'selected' : '' }}>Inactive / Standby</option>
           </select>
         </div>
       </div>
 
+      @php
+        $reqHost = request()->getHost();
+        $admsHost = ($reqHost && ! in_array($reqHost, ['127.0.0.1', 'localhost', '::1'], true)) ? $reqHost : (request()->server('SERVER_ADDR') ?: $reqHost);
+        $admsPort = request()->getPort() ?: (request()->server('SERVER_PORT') ?: '80');
+      @endphp
       <!-- ADMS Device Configuration Helper Box -->
-      <div id="admsHelperBox" class="hidden mt-4 p-4 bg-blue-950/30 border border-blue-500/40 rounded-xl text-xs space-y-2 text-blue-200">
+      <div id="admsHelperBox" class="{{ $selectedProtocol === 'adms' ? '' : 'hidden' }} mt-4 p-4 bg-blue-950/30 border border-blue-500/40 rounded-xl text-xs space-y-2 text-blue-200">
         <div class="font-bold flex items-center gap-1.5 text-blue-300">
           <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span>ZKTeco F22 / ADMS Cloud Setup Instructions</span>
         </div>
         <p class="text-slate-300 leading-relaxed">On your biometric device screen, open <strong class="text-white">Menu &rarr; Comm. &rarr; Cloud Server Setting</strong> and enter:</p>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-          <div><span class="text-slate-500 block text-[10px]">Server Address:</span><span class="text-emerald-400 font-bold select-all">{{ request()->server('SERVER_ADDR') ?: request()->getHost() }}</span></div>
-          <div><span class="text-slate-500 block text-[10px]">Server Port:</span><span class="text-emerald-400 font-bold select-all">{{ request()->server('SERVER_PORT') ?: '80' }}</span></div>
+          <div><span class="text-slate-500 block text-[10px]">Server Address:</span><span class="text-emerald-400 font-bold select-all">{{ $admsHost }}</span></div>
+          <div><span class="text-slate-500 block text-[10px]">Server Port:</span><span class="text-emerald-400 font-bold select-all">{{ $admsPort }}</span></div>
           <div><span class="text-slate-500 block text-[10px]">Server Mode:</span><span class="text-white font-bold">ADMS</span></div>
           <div><span class="text-slate-500 block text-[10px]">HTTPS / Proxy:</span><span class="text-white font-bold">OFF</span></div>
         </div>

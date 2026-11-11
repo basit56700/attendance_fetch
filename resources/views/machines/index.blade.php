@@ -59,6 +59,12 @@
             <span class="text-slate-500">Comm Key:</span>
             <span>{{ $machine->comm_key }}</span>
           </div>
+          @if($machine->serial_number)
+          <div class="flex justify-between">
+            <span class="text-slate-500">Serial No:</span>
+            <span class="text-slate-300 font-semibold truncate max-w-[150px]">{{ $machine->serial_number }}</span>
+          </div>
+          @endif
           <div class="flex justify-between">
             <span class="text-slate-500">Firmware:</span>
             <span class="text-slate-300 truncate max-w-[150px]">{{ $machine->firmware_version ?: 'Not queried' }}</span>

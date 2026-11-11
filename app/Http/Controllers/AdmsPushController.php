@@ -19,9 +19,7 @@ class AdmsPushController extends Controller
     public function cdata(Request $request): Response
     {
         $sn = $request->query('SN') ?: $request->input('SN');
-        $ip = $request->header('X-Forwarded-For')
-            ? trim(explode(',', $request->header('X-Forwarded-For'))[0])
-            : $request->ip();
+        $ip = $this->extractClientIp($request);
 
         // 1. Locate or automatically register/update the machine
         $machine = $this->resolveMachine($sn, $ip);
@@ -44,9 +42,7 @@ class AdmsPushController extends Controller
     public function push(Request $request): Response
     {
         $sn = $request->query('SN') ?: $request->input('SN');
-        $ip = $request->header('X-Forwarded-For')
-            ? trim(explode(',', $request->header('X-Forwarded-For'))[0])
-            : $request->ip();
+        $ip = $this->extractClientIp($request);
 
         $machine = $this->resolveMachine($sn, $ip);
         $content = $request->getContent();
@@ -80,13 +76,41 @@ class AdmsPushController extends Controller
     }
 
     /**
+     * Handles periodic keepalive heartbeat requests from ADMS devices.
+     * GET /iclock/ping?SN=...
+     */
+    public function ping(Request $request): Response
+    {
+        $sn = $request->query('SN') ?: $request->input('SN');
+        $machine = $this->resolveMachine($sn, $this->extractClientIp($request));
+
+        if ($machine) {
+            $machine->update([
+                'last_connected_at' => now(),
+                'status' => 'active',
+                'last_error' => null,
+            ]);
+        }
+
+        return response('OK', 200)->header('Content-Type', 'text/plain');
+    }
+
+    /**
      * Handles device polling for queued server commands.
      * GET /iclock/getrequest?SN=...
      */
     public function getRequest(Request $request): Response
     {
         $sn = $request->query('SN') ?: $request->input('SN');
-        $this->resolveMachine($sn, $request->ip());
+        $machine = $this->resolveMachine($sn, $this->extractClientIp($request));
+
+        if ($machine) {
+            $machine->update([
+                'last_connected_at' => now(),
+                'status' => 'active',
+                'last_error' => null,
+            ]);
+        }
 
         // Return 'OK' (no pending commands). If remote commands are needed later, format here.
         return response('OK', 200)->header('Content-Type', 'text/plain');
@@ -117,9 +141,19 @@ class AdmsPushController extends Controller
     public function registry(Request $request): Response
     {
         $sn = $request->query('SN') ?: $request->input('SN');
-        $machine = $this->resolveMachine($sn, $request->ip());
+        $this->resolveMachine($sn, $this->extractClientIp($request));
 
         return response('RegistryCode=1', 200)->header('Content-Type', 'text/plain');
+    }
+
+    protected function extractClientIp(Request $request): string
+    {
+        $forwarded = $request->header('X-Forwarded-For');
+        if ($forwarded) {
+            return trim(explode(',', $forwarded)[0]);
+        }
+
+        return (string) $request->ip();
     }
 
     /**
@@ -173,25 +207,50 @@ class AdmsPushController extends Controller
             return response('OK', 200)->header('Content-Type', 'text/plain');
         }
 
-        if ($table === 'ATTLOG' || $table === 'RTLOG' || str_contains($content, "\t") || empty($table)) {
+        if ($table === 'OPTIONS' && $machine) {
+            if (preg_match('/FWVersion=([^,\r\n]+)/i', $content, $matches)) {
+                $machine->firmware_version = trim($matches[1]);
+            }
+            $machine->last_connected_at = now();
+            $machine->status = 'active';
+            $machine->last_error = null;
+            $machine->save();
+
+            return response('OK', 200)->header('Content-Type', 'text/plain');
+        }
+
+        if ($table === 'ATTLOG' || $table === 'RTLOG' || ($table === '' && str_contains($content, "\t"))) {
             $count = $this->parseAndStoreAttendanceLogs($content, $machine);
 
             if ($machine) {
-                $machine->update([
+                $updates = [
                     'last_connected_at' => now(),
-                    'last_fetch_count' => $count,
                     'last_error' => null,
                     'status' => 'active',
-                ]);
+                ];
+                if ($count > 0) {
+                    $updates['last_fetch_count'] = $count;
+                }
+                $machine->update($updates);
             }
 
-            AuditLog::log(
-                'ADMS_PUSH',
-                "Received {$count} real-time punch(es) from machine [{$machine?->name} / SN: {$sn}].",
-                'success'
-            );
+            if ($count > 0) {
+                AuditLog::log(
+                    'ADMS_PUSH',
+                    "Received {$count} real-time punch(es) from machine [{$machine?->name} / SN: {$sn}].",
+                    'success'
+                );
+            }
 
             return response("OK: {$count}", 200)->header('Content-Type', 'text/plain');
+        }
+
+        if ($machine) {
+            $machine->update([
+                'last_connected_at' => now(),
+                'status' => 'active',
+                'last_error' => null,
+            ]);
         }
 
         // For OPERLOG, RTSTATE, BIODATA, or other system tables
@@ -231,14 +290,15 @@ class AdmsPushController extends Controller
                 $event = isset($kv['event']) ? (int) $kv['event'] : 0;
                 $pin = $kv['pin'] ?? ($kv['cardno'] ?? null);
 
-                if (($pin === null || $pin === '0' || $pin === '') && $event !== 0) {
+                if ($pin === null || $pin === '0' || $pin === '' || $event === 27) {
                     continue;
                 }
 
-                $erpId = (string) ($pin ?: '0');
+                $erpId = (string) $pin;
                 $rawTime = $kv['time'] ?? null;
                 $status = isset($kv['inoutstatus']) ? (int) $kv['inoutstatus'] : 0;
                 $verifyType = isset($kv['verifytype']) ? (int) $kv['verifytype'] : 1;
+                $workCode = $kv['workcode'] ?? '0';
             } else {
                 $parts = preg_split('/[\t,]+/', $line);
 
@@ -282,8 +342,6 @@ class AdmsPushController extends Controller
                 15 => 'Face Recognition',
                 default => "Mode {$verifyType}",
             };
-
-            $workCode = isset($parts[4]) ? trim($parts[4]) : '0';
 
             // Insert or deduplicate
             $created = AttendanceLog::firstOrCreate(
@@ -351,11 +409,15 @@ class AdmsPushController extends Controller
                 'success'
             );
         } elseif ($machine) {
+            $dirty = [];
             if ($sn && ! $machine->serial_number) {
-                $machine->update(['serial_number' => $sn]);
+                $dirty['serial_number'] = $sn;
             }
-            if ($machine->protocol !== 'adms' && $machine->protocol !== 'auto') {
-                $machine->update(['protocol' => 'adms']);
+            if ($machine->protocol !== 'adms') {
+                $dirty['protocol'] = 'adms';
+            }
+            if (! empty($dirty)) {
+                $machine->update($dirty);
             }
         }
 
