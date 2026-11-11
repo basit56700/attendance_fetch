@@ -122,3 +122,16 @@ php artisan zk:poll
 # Poll a specific machine by ID
 php artisan zk:poll 1
 ```
+
+
+
+
+
+
+
+# Check for any Block rule on Laragon's php.exe:
+Get-NetFirewallApplicationFilter -Program "*php.exe*" | Get-NetFirewallRule | Select-Object DisplayName,Direction,Action,Enabled
+
+# Allow inbound Port 8000:
+New-NetFirewallRule -DisplayName "Laravel ADMS 8000" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow -Profile Any
+
