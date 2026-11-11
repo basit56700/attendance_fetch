@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AttendanceLog;
 use App\Models\AttendanceMachine;
 use App\Models\AuditLog;
 use App\Models\SystemSetting;
+use App\Services\PunchSequenceService;
 use App\Services\ZKTecoService;
 use Exception;
 use Illuminate\Console\Command;
@@ -16,7 +16,7 @@ class PollZkMachines extends Command
 
     protected $description = 'Polls configured ZKTeco biometric attendance machines and stores records';
 
-    public function handle(ZKTecoService $zkService)
+    public function handle(ZKTecoService $zkService, PunchSequenceService $punchSequence)
     {
         $machineId = $this->argument('machine_id');
 
@@ -53,28 +53,8 @@ class PollZkMachines extends Command
                     $machine->comm_key
                 );
 
-                $newCount = 0;
-                foreach ($records as $r) {
-                    $created = AttendanceLog::firstOrCreate(
-                        [
-                            'attendance_machine_id' => $machine->id,
-                            'erp_id' => trim($r['erp_id']),
-                            'attendance_time' => $r['attendance_time'],
-                        ],
-                        [
-                            'punch_type' => $r['punch_type'],
-                            'type_remarks' => $r['type_remarks'],
-                            'verification_mode' => $r['verification_mode'],
-                            'work_code' => $r['work_code'] ?? '0',
-                            'raw_data' => $r,
-                            'sync_status' => 'synced',
-                        ]
-                    );
-
-                    if ($created->wasRecentlyCreated) {
-                        $newCount++;
-                    }
-                }
+                $result = $punchSequence->storePulledRecords($machine, $records);
+                $newCount = $result['created'];
 
                 $machine->update([
                     'last_connected_at' => now(),

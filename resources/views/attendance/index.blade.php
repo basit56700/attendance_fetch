@@ -80,9 +80,12 @@
 
   <!-- Attendance Table Card -->
   <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
-      <span>Showing <strong class="text-white">{{ $logs->firstItem() ?? 0 }}-{{ $logs->lastItem() ?? 0 }}</strong> of <strong class="text-white">{{ $logs->total() }}</strong> attendance records</span>
-      <span class="text-slate-500">Auto-deduplicated by machine + employee + timestamp</span>
+    <div class="px-6 py-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+      <span id="attendanceSummary">Showing <strong class="text-white">{{ $logs->firstItem() ?? 0 }}-{{ $logs->lastItem() ?? 0 }}</strong> of <strong class="text-white">{{ $logs->total() }}</strong> attendance records</span>
+      <div class="flex items-center space-x-3">
+        <span class="text-slate-500 hidden lg:inline">1st Daily Entry: Check-In &bull; 2nd Daily Entry: Check-Out</span>
+        <x-live-refresh-control select-id="attendanceLiveSelect" dot-id="attendanceLiveDot" status-id="attendanceLiveStatus" />
+      </div>
     </div>
 
     <div class="overflow-x-auto">
@@ -98,9 +101,9 @@
             <th class="py-3 px-4">Database Created</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-800/60 font-mono">
+        <tbody id="attendanceTableBody" class="divide-y divide-slate-800/60 font-mono">
           @forelse($logs as $log)
-            <tr class="hover:bg-slate-800/40 transition">
+            <tr class="hover:bg-slate-800/40 transition" data-log-id="{{ $log->id }}">
               <td class="py-3 px-4 text-slate-500">#{{ $log->id }}</td>
               <td class="py-3 px-4 font-bold text-white">{{ $log->erp_id }}</td>
               <td class="py-3 px-4 text-slate-200">{{ $log->attendance_time->format('Y-m-d H:i:s') }}</td>
@@ -111,9 +114,14 @@
                     1 => 'bg-red-500/10 text-red-400 border-red-500/20',
                     default => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
                   };
+                  $punchText = match($log->punch_type) {
+                    0 => 'Check-In (IN)',
+                    1 => 'Check-Out (OUT)',
+                    default => $log->type_remarks,
+                  };
                 @endphp
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border {{ $badgeCls }}">
-                  {{ $log->type_remarks }}
+                  {{ $punchText }}
                 </span>
               </td>
               <td class="py-3 px-4 text-slate-400 font-sans">{{ $log->verification_mode }}</td>
@@ -192,5 +200,53 @@ function copyJsonPayload() {
     alert('JSON payload copied to clipboard!');
   });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.GCSLiveRefresh) return;
+  let lastSeenId = {{ (int) ($logs->max('id') ?? 0) }};
+
+  window.GCSLiveRefresh.init({
+    selectId: 'attendanceLiveSelect',
+    dotId: 'attendanceLiveDot',
+    statusId: 'attendanceLiveStatus',
+    defaultSeconds: {{ (int) \App\Models\SystemSetting::get('ui_refresh_interval', '5') }},
+    url: function () {
+      const params = new URLSearchParams(window.location.search);
+      params.set('live', '1');
+      return '{{ route("attendance.index") }}?' + params.toString();
+    },
+    onData: function (data) {
+      const esc = window.GCSLiveRefresh.escapeHtml;
+      const summaryEl = document.getElementById('attendanceSummary');
+      if (summaryEl && typeof data.total !== 'undefined') {
+        summaryEl.innerHTML = `Showing <strong class="text-white">${esc(data.from)}-${esc(data.to)}</strong> of <strong class="text-white">${esc(data.total)}</strong> attendance records`;
+      }
+
+      const tbody = document.getElementById('attendanceTableBody');
+      if (tbody && Array.isArray(data.logs)) {
+        if (data.logs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-slate-500 font-sans">No attendance logs found matching the selected filters.</td></tr>';
+        } else {
+          tbody.innerHTML = data.logs.map(function (log) {
+            const isNew = Number(log.id) > lastSeenId;
+            const badge = window.GCSLiveRefresh.renderPunchBadge(log.punch_type, log.type_remarks, log.punch_label);
+            return `<tr class="hover:bg-slate-800/40 transition ${isNew ? 'live-row-new' : ''}" data-log-id="${esc(log.id)}">
+              <td class="py-3 px-4 text-slate-500">#${esc(log.id)}</td>
+              <td class="py-3 px-4 font-bold text-white">${esc(log.erp_id)}</td>
+              <td class="py-3 px-4 text-slate-200">${esc(log.attendance_time)}</td>
+              <td class="py-3 px-4 font-sans">${badge}</td>
+              <td class="py-3 px-4 text-slate-400 font-sans">${esc(log.verification_mode)}</td>
+              <td class="py-3 px-4 font-sans text-slate-300">${esc(log.machine_name)} <span class="text-slate-500 text-[10px] font-mono">(${esc(log.machine_ip)})</span></td>
+              <td class="py-3 px-4 text-slate-500">${esc(log.created_at)}</td>
+            </tr>`;
+          }).join('');
+        }
+        if (Number(data.latest_id || 0) > lastSeenId) {
+          lastSeenId = Number(data.latest_id);
+        }
+      }
+    },
+  });
+});
 </script>
 @endpush

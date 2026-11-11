@@ -26,6 +26,7 @@
   <script src="{{ asset('js/tailwind.js') }}"></script>
   <link rel="stylesheet" href="{{ asset('css/theme.css') }}?v={{ file_exists(public_path('css/theme.css')) ? filemtime(public_path('css/theme.css')) : time() }}">
   <script src="{{ asset('js/theme.js') }}?v={{ file_exists(public_path('js/theme.js')) ? filemtime(public_path('js/theme.js')) : time() }}" defer></script>
+  <script src="{{ asset('js/live-refresh.js') }}?v={{ file_exists(public_path('js/live-refresh.js')) ? filemtime(public_path('js/live-refresh.js')) : time() }}" defer></script>
   <style>
     body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
   </style>

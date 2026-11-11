@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\PunchSequenceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,12 +15,15 @@ class AttendanceLogResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $typeRemarks = $this->type_remarks ?? ($this->punch_type === 0 ? 'IN' : 'OUT');
+
         return [
             'id' => $this->id,
             'erp_id' => (string) $this->erp_id,
             'attendance_time' => $this->attendance_time?->format('Y-m-d H:i:s'),
             'punch_type' => $this->punch_type,
-            'type_remarks' => $this->type_remarks ?? ($this->punch_type === 0 ? 'IN' : 'OUT'),
+            'type_remarks' => $typeRemarks,
+            'punch_label' => app(PunchSequenceService::class)->labelForType($this->punch_type, $typeRemarks),
             'verification_mode' => $this->verification_mode ?? 'Fingerprint',
             'work_code' => (string) ($this->work_code ?? '0'),
             'machine_id' => $this->attendance_machine_id,

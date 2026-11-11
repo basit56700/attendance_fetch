@@ -2,27 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AttendanceLog;
 use App\Models\AttendanceMachine;
 use App\Models\AuditLog;
 use App\Models\SystemSetting;
+use App\Services\PunchSequenceService;
 use App\Services\ZKTecoService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class MachineController extends Controller
 {
-    protected ZKTecoService $zkService;
+    public function __construct(
+        protected ZKTecoService $zkService,
+        protected PunchSequenceService $punchSequence,
+    ) {}
 
-    public function __construct(ZKTecoService $zkService)
-    {
-        $this->zkService = $zkService;
-    }
-
-    public function index()
+    public function index(Request $request)
     {
         $machines = AttendanceMachine::withCount('attendanceLogs')->get();
+
+        if ($request->boolean('live')) {
+            return response()->json([
+                'machines' => $machines->map(fn ($m) => [
+                    'id' => $m->id,
+                    'status' => $m->status,
+                    'serial_number' => $m->serial_number,
+                    'firmware_version' => $m->firmware_version,
+                    'attendance_logs_count' => (int) $m->attendance_logs_count,
+                    'last_connected_at_human' => $m->last_connected_at?->diffForHumans() ?? 'Never',
+                    'last_error' => $m->last_error,
+                ])->values(),
+                'server_time' => now()->format('H:i:s'),
+            ]);
+        }
 
         return view('machines.index', compact('machines'));
     }
@@ -198,41 +210,10 @@ class MachineController extends Controller
                 $machine->comm_key
             );
 
-            $totalFetched = count($rawRecords);
-            $newlyInserted = 0;
-            $duplicatesSkipped = 0;
-
-            foreach ($rawRecords as $record) {
-                $erpId = trim($record['erp_id']);
-                $attTime = $record['attendance_time'];
-
-                if (empty($erpId) || empty($attTime)) {
-                    continue;
-                }
-
-                // Insert with duplicate prevention via UNIQUE constraint
-                $created = AttendanceLog::firstOrCreate(
-                    [
-                        'attendance_machine_id' => $machine->id,
-                        'erp_id' => $erpId,
-                        'attendance_time' => $attTime,
-                    ],
-                    [
-                        'punch_type' => $record['punch_type'],
-                        'type_remarks' => $record['type_remarks'],
-                        'verification_mode' => $record['verification_mode'],
-                        'work_code' => $record['work_code'] ?? '0',
-                        'raw_data' => $record,
-                        'sync_status' => 'synced',
-                    ]
-                );
-
-                if ($created->wasRecentlyCreated) {
-                    $newlyInserted++;
-                } else {
-                    $duplicatesSkipped++;
-                }
-            }
+            $result = $this->punchSequence->storePulledRecords($machine, $rawRecords);
+            $totalFetched = $result['total'];
+            $newlyInserted = $result['created'];
+            $duplicatesSkipped = $result['duplicates'];
 
             $machine->update([
                 'last_connected_at' => now(),
@@ -299,28 +280,8 @@ class MachineController extends Controller
 
             try {
                 $records = $this->zkService->getAttendance($machine->ip_address, $machine->port, $machine->protocol, $machine->comm_key);
-                $newInMach = 0;
-
-                foreach ($records as $r) {
-                    $created = AttendanceLog::firstOrCreate(
-                        [
-                            'attendance_machine_id' => $machine->id,
-                            'erp_id' => trim($r['erp_id']),
-                            'attendance_time' => $r['attendance_time'],
-                        ],
-                        [
-                            'punch_type' => $r['punch_type'],
-                            'type_remarks' => $r['type_remarks'],
-                            'verification_mode' => $r['verification_mode'],
-                            'work_code' => $r['work_code'] ?? '0',
-                            'raw_data' => $r,
-                            'sync_status' => 'synced',
-                        ]
-                    );
-                    if ($created->wasRecentlyCreated) {
-                        $newInMach++;
-                    }
-                }
+                $result = $this->punchSequence->storePulledRecords($machine, $records);
+                $newInMach = $result['created'];
 
                 $machine->update([
                     'last_connected_at' => now(),

@@ -601,3 +601,23 @@ html.light aside img {
   -webkit-filter: none !important;
   opacity: 1 !important;
 }
+
+/* Live Auto-Refresh Pill & Newly Arrived Row Highlight */
+html.light .live-refresh-pill {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+@keyframes liveRowFlash {
+  0% {
+    background-color: rgba(16, 185, 129, 0.24);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.live-row-new {
+  animation: liveRowFlash 2.2s ease-out;
+}

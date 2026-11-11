@@ -42,7 +42,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
       </div>
-      <div class="text-3xl font-extrabold text-white mt-2">{{ number_format($stats['punches_today']) }}</div>
+      <div id="statPunchesToday" class="text-3xl font-extrabold text-white mt-2">{{ number_format($stats['punches_today']) }}</div>
       <div class="text-slate-500 text-[11px] mt-1">Recorded today</div>
     </div>
 
@@ -53,7 +53,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16"></path></svg>
         </div>
       </div>
-      <div class="text-3xl font-extrabold text-white mt-2">{{ number_format($stats['total_punches']) }}</div>
+      <div id="statTotalPunches" class="text-3xl font-extrabold text-white mt-2">{{ number_format($stats['total_punches']) }}</div>
       <div class="text-slate-500 text-[11px] mt-1">Stored in database</div>
     </div>
 
@@ -64,7 +64,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
         </div>
       </div>
-      <div class="text-3xl font-extrabold text-white mt-2">{{ $stats['active_machines'] }} <span class="text-sm font-normal text-slate-500">/ {{ $stats['total_machines'] }}</span></div>
+      <div id="statActiveMachines" class="text-3xl font-extrabold text-white mt-2">{{ $stats['active_machines'] }} <span class="text-sm font-normal text-slate-500">/ {{ $stats['total_machines'] }}</span></div>
       <div class="text-slate-500 text-[11px] mt-1">Configured devices</div>
     </div>
 
@@ -75,7 +75,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
         </div>
       </div>
-      <div class="text-xl font-bold text-amber-400 mt-2 truncate">{{ $stats['last_fetch'] }}</div>
+      <div id="statLastFetch" class="text-xl font-bold text-amber-400 mt-2 truncate">{{ $stats['last_fetch'] }}</div>
       <div class="text-slate-500 text-[11px] mt-1">Machine synchronization</div>
     </div>
   </div>
@@ -120,9 +120,12 @@
 
     <!-- Recent Logs Table (2 columns) -->
     <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h3 class="text-sm font-bold text-white">Recent Attendance Logs</h3>
-        <a href="{{ route('attendance.index') }}" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View Full Table &rarr;</a>
+        <div class="flex items-center space-x-3">
+          <x-live-refresh-control select-id="dashboardLiveSelect" dot-id="dashboardLiveDot" status-id="dashboardLiveStatus" />
+          <a href="{{ route('attendance.index') }}" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View Full Table &rarr;</a>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
@@ -136,9 +139,9 @@
               <th class="py-2.5 px-3">Machine</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/60 font-mono">
+          <tbody id="dashboardLogsBody" class="divide-y divide-slate-800/60 font-mono">
             @forelse($recentLogs as $log)
-              <tr class="hover:bg-slate-800/40 transition">
+              <tr class="hover:bg-slate-800/40 transition" data-log-id="{{ $log->id }}">
                 <td class="py-2 px-3 font-bold text-white">{{ $log->erp_id }}</td>
                 <td class="py-2 px-3 text-slate-300">{{ $log->attendance_time->format('Y-m-d H:i:s') }}</td>
                 <td class="py-2 px-3 font-sans">
@@ -148,8 +151,13 @@
                       1 => 'bg-red-500/10 text-red-400 border-red-500/20',
                       default => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
                     };
+                    $punchText = match($log->punch_type) {
+                      0 => 'Check-In (IN)',
+                      1 => 'Check-Out (OUT)',
+                      default => $log->type_remarks,
+                    };
                   @endphp
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $badgeCls }}">{{ $log->type_remarks }}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $badgeCls }}">{{ $punchText }}</span>
                 </td>
                 <td class="py-2 px-3 text-slate-400 font-sans">{{ $log->verification_mode }}</td>
                 <td class="py-2 px-3 text-slate-400 font-sans">{{ $log->machine?->name ?? 'Unknown' }}</td>
@@ -171,7 +179,7 @@
         <a href="{{ route('audit-logs.index') }}" class="text-xs text-blue-400 hover:text-blue-300 font-medium">All Logs &rarr;</a>
       </div>
 
-      <div class="space-y-3">
+      <div id="dashboardAuditsBody" class="space-y-3">
         @forelse($recentAudits as $audit)
           <div class="text-xs border-b border-slate-800/60 pb-2.5 last:border-none">
             <div class="flex items-center justify-between">
@@ -195,3 +203,76 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.GCSLiveRefresh) return;
+  let lastSeenId = {{ (int) ($recentLogs->max('id') ?? 0) }};
+
+  window.GCSLiveRefresh.init({
+    selectId: 'dashboardLiveSelect',
+    dotId: 'dashboardLiveDot',
+    statusId: 'dashboardLiveStatus',
+    defaultSeconds: {{ (int) \App\Models\SystemSetting::get('ui_refresh_interval', '5') }},
+    url: '{{ route("dashboard", ["live" => 1]) }}',
+    onData: function (data) {
+      const esc = window.GCSLiveRefresh.escapeHtml;
+      if (data.stats) {
+        const pt = document.getElementById('statPunchesToday');
+        const tp = document.getElementById('statTotalPunches');
+        const am = document.getElementById('statActiveMachines');
+        const lf = document.getElementById('statLastFetch');
+        if (pt) pt.textContent = Number(data.stats.punches_today || 0).toLocaleString();
+        if (tp) tp.textContent = Number(data.stats.total_punches || 0).toLocaleString();
+        if (am) am.innerHTML = `${esc(data.stats.active_machines)} <span class="text-sm font-normal text-slate-500">/ ${esc(data.stats.total_machines)}</span>`;
+        if (lf) lf.textContent = data.stats.last_fetch || 'Never';
+      }
+
+      const tbody = document.getElementById('dashboardLogsBody');
+      if (tbody && Array.isArray(data.recent_logs)) {
+        if (data.recent_logs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-500 font-sans">No attendance records found. Click "Fetch All Machines" to download punches.</td></tr>';
+        } else {
+          tbody.innerHTML = data.recent_logs.map(function (log) {
+            const isNew = Number(log.id) > lastSeenId;
+            const badge = window.GCSLiveRefresh.renderPunchBadge(log.punch_type, log.type_remarks, log.punch_label);
+            return `<tr class="hover:bg-slate-800/40 transition ${isNew ? 'live-row-new' : ''}" data-log-id="${esc(log.id)}">
+              <td class="py-2 px-3 font-bold text-white">${esc(log.erp_id)}</td>
+              <td class="py-2 px-3 text-slate-300">${esc(log.attendance_time)}</td>
+              <td class="py-2 px-3 font-sans">${badge}</td>
+              <td class="py-2 px-3 text-slate-400 font-sans">${esc(log.verification_mode)}</td>
+              <td class="py-2 px-3 text-slate-400 font-sans">${esc(log.machine_name)}</td>
+            </tr>`;
+          }).join('');
+        }
+        if (Number(data.latest_id || 0) > lastSeenId) {
+          lastSeenId = Number(data.latest_id);
+        }
+      }
+
+      const auditsBox = document.getElementById('dashboardAuditsBody');
+      if (auditsBox && Array.isArray(data.recent_audits)) {
+        if (data.recent_audits.length === 0) {
+          auditsBox.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs">No audit logs yet.</div>';
+        } else {
+          auditsBox.innerHTML = data.recent_audits.map(function (audit) {
+            const stCls = audit.status === 'success' ? 'bg-blue-500/10 text-blue-400' : 'bg-red-500/10 text-red-400';
+            return `<div class="text-xs border-b border-slate-800/60 pb-2.5 last:border-none">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-white">${esc(audit.username)}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${esc(audit.created_at_human)}</span>
+              </div>
+              <div class="flex items-center space-x-1.5 mt-1">
+                <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase ${stCls}">${esc(audit.action)}</span>
+                <span class="text-slate-400 truncate">${esc(audit.details)}</span>
+              </div>
+            </div>`;
+          }).join('');
+        }
+      }
+    },
+  });
+});
+</script>
+@endpush

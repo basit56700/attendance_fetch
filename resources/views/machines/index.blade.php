@@ -12,7 +12,8 @@
       <h2 class="text-lg font-bold text-white">Biometric Devices</h2>
       <p class="text-xs text-slate-400 mt-0.5">Manage machine IP addresses, ports (standard 4370), direct cable or LAN connections.</p>
     </div>
-    <div class="flex items-center space-x-2.5">
+    <div class="flex flex-wrap items-center gap-2.5">
+      <x-live-refresh-control select-id="machinesLiveSelect" dot-id="machinesLiveDot" status-id="machinesLiveStatus" />
       <form action="{{ route('machines.fetch-all') }}" method="POST">
         @csrf
         <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-red-600/20 flex items-center space-x-1.5 cursor-pointer">
@@ -67,15 +68,15 @@
           @endif
           <div class="flex justify-between">
             <span class="text-slate-500">Firmware:</span>
-            <span class="text-slate-300 truncate max-w-[150px]">{{ $machine->firmware_version ?: 'Not queried' }}</span>
+            <span id="machine-fw-{{ $machine->id }}" class="text-slate-300 truncate max-w-[150px]">{{ $machine->firmware_version ?: 'Not queried' }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Total Logs in DB:</span>
-            <span class="text-emerald-400 font-bold">{{ number_format($machine->attendance_logs_count) }}</span>
+            <span id="machine-logs-{{ $machine->id }}" class="text-emerald-400 font-bold">{{ number_format($machine->attendance_logs_count) }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Last Synced:</span>
-            <span class="text-slate-400">{{ $machine->last_connected_at ? $machine->last_connected_at->diffForHumans() : 'Never' }}</span>
+            <span id="machine-synced-{{ $machine->id }}" class="text-slate-400">{{ $machine->last_connected_at ? $machine->last_connected_at->diffForHumans() : 'Never' }}</span>
           </div>
         </div>
 
@@ -250,5 +251,28 @@ function testMachineDiagnostic(ip, port, protocol, commKey, machineId) {
 function closeDiagnosticModal() {
   document.getElementById('diagnosticModal').classList.add('hidden');
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.GCSLiveRefresh) return;
+
+  window.GCSLiveRefresh.init({
+    selectId: 'machinesLiveSelect',
+    dotId: 'machinesLiveDot',
+    statusId: 'machinesLiveStatus',
+    defaultSeconds: {{ (int) \App\Models\SystemSetting::get('ui_refresh_interval', '5') }},
+    url: '{{ route("machines.index", ["live" => 1]) }}',
+    onData: function (data) {
+      if (!Array.isArray(data.machines)) return;
+      data.machines.forEach(function (m) {
+        const logsEl = document.getElementById('machine-logs-' + m.id);
+        const syncedEl = document.getElementById('machine-synced-' + m.id);
+        const fwEl = document.getElementById('machine-fw-' + m.id);
+        if (logsEl) logsEl.textContent = Number(m.attendance_logs_count || 0).toLocaleString();
+        if (syncedEl) syncedEl.textContent = m.last_connected_at_human || 'Never';
+        if (fwEl && m.firmware_version) fwEl.textContent = m.firmware_version;
+      });
+    },
+  });
+});
 </script>
 @endpush

@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceMachine;
 use App\Models\AuditLog;
+use App\Services\PunchSequenceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
 class AdmsPushController extends Controller
 {
+    public function __construct(protected PunchSequenceService $punchSequence) {}
+
     /**
      * Handles /iclock/cdata for ZKTeco ADMS push protocol.
      * GET: Device handshake, options exchange, and heartbeat.
@@ -264,6 +267,7 @@ class AdmsPushController extends Controller
     {
         $lines = preg_split('/\r\n|\r|\n/', trim($content));
         $count = 0;
+        $affectedPairs = [];
 
         foreach ($lines as $line) {
             $line = trim($line);
@@ -366,7 +370,12 @@ class AdmsPushController extends Controller
 
             if ($created->wasRecentlyCreated) {
                 $count++;
+                $affectedPairs[] = ['erp_id' => $erpId, 'date' => substr($attTime, 0, 10)];
             }
+        }
+
+        if (! empty($affectedPairs)) {
+            $this->punchSequence->resequencePairs($affectedPairs);
         }
 
         return $count;

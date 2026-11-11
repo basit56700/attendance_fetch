@@ -6,35 +6,28 @@ use App\Http\Resources\AttendanceLogResource;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceMachine;
 use App\Models\AuditLog;
+use App\Services\PunchSequenceService;
 use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
+    public function __construct(protected PunchSequenceService $punchSequence) {}
+
     public function index(Request $request)
     {
-        $query = AttendanceLog::with('machine')->orderBy('attendance_time', 'desc');
+        $logs = $this->getFilteredQuery($request)->paginate(25)->withQueryString();
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('attendance_time', '>=', $request->input('date_from'));
+        if ($request->boolean('live')) {
+            return response()->json([
+                'total' => $logs->total(),
+                'from' => $logs->firstItem() ?? 0,
+                'to' => $logs->lastItem() ?? 0,
+                'latest_id' => $logs->max('id') ?? 0,
+                'logs' => AttendanceLogResource::collection($logs->getCollection())->resolve($request),
+                'server_time' => now()->format('H:i:s'),
+            ]);
         }
 
-        if ($request->filled('date_to')) {
-            $query->whereDate('attendance_time', '<=', $request->input('date_to'));
-        }
-
-        if ($request->filled('erp_id')) {
-            $query->where('erp_id', 'like', '%'.trim($request->input('erp_id')).'%');
-        }
-
-        if ($request->filled('machine_id')) {
-            $query->where('attendance_machine_id', $request->input('machine_id'));
-        }
-
-        if ($request->filled('punch_type')) {
-            $query->where('punch_type', $request->input('punch_type'));
-        }
-
-        $logs = $query->paginate(25)->withQueryString();
         $machines = AttendanceMachine::all();
 
         return view('attendance.index', compact('logs', 'machines'));
@@ -52,6 +45,7 @@ class AttendanceController extends Controller
                 'attendance_time' => $log->attendance_time->format('Y-m-d H:i:s'),
                 'punch_type' => $log->punch_type,
                 'type_remarks' => $log->type_remarks,
+                'punch_label' => $this->punchSequence->labelForType($log->punch_type, $log->type_remarks),
                 'verification_mode' => $log->verification_mode,
                 'machine_id' => $log->attendance_machine_id,
                 'machine_name' => $log->machine?->name ?? 'Unknown',
@@ -180,7 +174,9 @@ class AttendanceController extends Controller
 
     protected function getFilteredQuery(Request $request, ?int $machineId = null)
     {
-        $query = AttendanceLog::with('machine')->orderBy('attendance_time', 'desc');
+        $query = AttendanceLog::with('machine')
+            ->orderBy('attendance_time', 'desc')
+            ->orderBy('id', 'desc');
 
         if ($machineId !== null) {
             $query->where('attendance_machine_id', $machineId);

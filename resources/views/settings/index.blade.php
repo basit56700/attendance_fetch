@@ -12,7 +12,7 @@
   </div>
 
   <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
-    <form action="{{ route('settings.update') }}" method="POST" class="space-y-6">
+    <form action="{{ route('settings.update') }}" method="POST" class="space-y-6" onsubmit="try { const uiEl = this.querySelector('[name=ui_refresh_interval]'); if (uiEl) localStorage.setItem('gcs_live_refresh_seconds', uiEl.value); } catch (e) {}">
       @csrf
 
       <div>
@@ -22,21 +22,36 @@
       </div>
 
       <div class="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-4">
-        <h3 class="text-xs font-bold text-red-400 uppercase tracking-wider">Automated Background Poller</h3>
+        <h3 class="text-xs font-bold text-red-400 uppercase tracking-wider">Automated Poller & Live UI Auto-Refresh</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label class="flex items-center space-x-3 cursor-pointer">
-            <input type="hidden" name="auto_fetch_enabled" value="0">
-            <input type="checkbox" name="auto_fetch_enabled" value="1" {{ ($settings['auto_fetch_enabled'] ?? '0') === '1' ? 'checked' : '' }}
-                   class="w-4 h-4 rounded text-red-600 bg-slate-950 border-slate-700 focus:ring-red-500">
-            <span class="text-xs text-slate-300 font-medium">Enable Scheduled Auto-Polling</span>
-          </label>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Default Live UI Table Refresh Duration</label>
+            <select name="ui_refresh_interval" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono">
+              @php $uiInt = old('ui_refresh_interval', $settings['ui_refresh_interval'] ?? '5'); @endphp
+              <option value="0" {{ (string) $uiInt === '0' ? 'selected' : '' }}>Off (Manual Refresh Only)</option>
+              <option value="5" {{ (string) $uiInt === '5' ? 'selected' : '' }}>Every 5 Seconds (Real-time ADMS)</option>
+              <option value="10" {{ (string) $uiInt === '10' ? 'selected' : '' }}>Every 10 Seconds</option>
+              <option value="30" {{ (string) $uiInt === '30' ? 'selected' : '' }}>Every 30 Seconds</option>
+              <option value="60" {{ (string) $uiInt === '60' ? 'selected' : '' }}>Every 60 Seconds</option>
+            </select>
+            <span class="text-[10px] text-slate-500 mt-1 block">Automatically updates Dashboard, Attendance Logs &amp; Machines cards whenever new punches arrive.</span>
+          </div>
 
-          <div class="flex items-center space-x-2">
-            <label class="text-xs text-slate-400">Polling Interval:</label>
-            <input type="number" name="auto_fetch_interval" value="{{ old('auto_fetch_interval', $settings['auto_fetch_interval'] ?? '15') }}" min="1"
-                   class="w-20 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white font-mono">
-            <span class="text-xs text-slate-500">Minutes</span>
+          <div class="space-y-3">
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input type="hidden" name="auto_fetch_enabled" value="0">
+              <input type="checkbox" name="auto_fetch_enabled" value="1" {{ ($settings['auto_fetch_enabled'] ?? '0') === '1' ? 'checked' : '' }}
+                     class="w-4 h-4 rounded text-red-600 bg-slate-950 border-slate-700 focus:ring-red-500">
+              <span class="text-xs text-slate-300 font-medium">Enable Scheduled Auto-Polling (Port 4370 devices)</span>
+            </label>
+
+            <div class="flex items-center space-x-2">
+              <label class="text-xs text-slate-400">Auto-Fetch Interval:</label>
+              <input type="number" name="auto_fetch_interval" value="{{ old('auto_fetch_interval', $settings['auto_fetch_interval'] ?? '15') }}" min="1"
+                     class="w-20 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white font-mono">
+              <span class="text-xs text-slate-500">Minutes</span>
+            </div>
           </div>
         </div>
       </div>
@@ -117,11 +132,26 @@
 
       <div class="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-4">
         <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider">Attendance Rules</h3>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Late Mark Grace Period (Minutes)</label>
-          <input type="number" name="grace_period_minutes" value="{{ old('grace_period_minutes', $settings['grace_period_minutes'] ?? '15') }}"
-                 class="w-full md:w-48 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono">
-          <span class="text-[10px] text-slate-500 mt-1 block">Punches within this grace period are recorded as standard Check-In.</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Check-In / Check-Out Classification</label>
+            @php $seqMode = old('punch_sequence_mode', $settings['punch_sequence_mode'] ?? 'alternating'); @endphp
+            <select name="punch_sequence_mode" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono">
+              <option value="alternating" {{ $seqMode === 'alternating' ? 'selected' : '' }}>1st Punch Check-In, 2nd Punch Check-Out (Daily Alternating)</option>
+              <option value="device" {{ $seqMode === 'device' ? 'selected' : '' }}>Use Device Button State</option>
+            </select>
+            <label class="flex items-center space-x-2 mt-2 cursor-pointer">
+              <input type="checkbox" name="resequence_now" value="1" class="w-3.5 h-3.5 rounded text-red-600 bg-slate-950 border-slate-700 focus:ring-red-500">
+              <span class="text-[11px] text-slate-400">Reclassify existing logs on save</span>
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Late Mark Grace Period (Minutes)</label>
+            <input type="number" name="grace_period_minutes" value="{{ old('grace_period_minutes', $settings['grace_period_minutes'] ?? '15') }}"
+                   class="w-full md:w-48 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono">
+            <span class="text-[10px] text-slate-500 mt-1 block">Punches within this grace period are recorded as standard Check-In.</span>
+          </div>
         </div>
       </div>
 

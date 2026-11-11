@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AttendanceLog;
 use App\Models\AttendanceMachine;
+use App\Models\SystemSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -30,6 +31,8 @@ class AdmsPushTest extends TestCase
 
     public function test_adms_attlog_push_stores_punches_safely(): void
     {
+        SystemSetting::set('punch_sequence_mode', 'device');
+
         $machine = AttendanceMachine::create([
             'name' => 'F22 Test Device',
             'ip_address' => '172.16.100.191',
